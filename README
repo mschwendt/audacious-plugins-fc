@@ -1,0 +1,26 @@
+bmp-fc -- http://xmms-fc.sf.net
+
+This BMP plug-in is a port of the XMMS plug-in which in turn is based on
+an unmaintained piece of code which is my `Future Composer Reference
+Player for Linux'. Because the source code has been imported into CVS long
+since its last modification, the timestamps of the files in CVS do not
+reflect that the core code has not been worked on for years.
+
+See FC.README in the source directory for more about that code. You
+can get the original package at:
+
+  http://www.geocities.com/SiliconValley/Lakes/5147/mod/#fc
+
+That player has been written because most FC player implementations
+(on AMIGA and/or PC) do not manage to play back all modules without
+flaws. There is always at least one module that reveals a minor or
+major bug during playback. If that would happen with this particular
+implementation, it would be very easy to fix the source code,
+whereas it would be very difficult to fix an emulated MC680x0
+machine code binary-only player.
+
+If you still happen to encounter unexpected behaviour, please submit
+your bug report here:
+
+  http://sourceforge.net/projects/xmms-fc/
+

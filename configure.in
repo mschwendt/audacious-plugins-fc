@@ -1,0 +1,76 @@
+AC_INIT(src/FC.cpp)
+AM_INIT_AUTOMAKE(bmp-fc, 0.1)
+AM_CONFIG_HEADER(src/Config.h)
+
+AC_CANONICAL_HOST
+dnl AC_PREFIX_DEFAULT(/usr)
+AC_EXEEXT()
+
+AC_PROG_CC
+AC_LANG_C
+
+AC_C_BIGENDIAN
+dnl echo $ac_cv_c_bigendian
+dnl if ! test "$ac_cv_c_bigendian" = yes; then
+dnl  AC_DEFINE(WORDS_LITTLEENDIAN)
+dnl fi
+
+AC_CHECK_SIZEOF(char)
+AC_CHECK_SIZEOF(short int)
+AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(long int)
+
+AC_HEADER_STDC
+
+PKG_CHECK_MODULES(BMP, bmp)
+if test "x$BMP_LIBS" != "x"; then
+   CFLAGS="$CFLAGS $BMP_CFLAGS"
+   CXXFLAGS="$CXXFLAGS $BMP_CFLAGS"
+   LIBS="$LIBS $BMP_LIBS"
+   AC_MSG_RESULT(yes)
+else
+   AC_MSG_RESULT(no)
+fi
+
+AC_PATH_PROG(CAT,cat,no)
+if test "$CAT" = no; then
+    AC_MSG_ERROR(["cat" not found!]);
+fi
+
+AC_PATH_PROG(CP,cp,no)
+if test "$CP" = no; then
+    AC_MSG_ERROR(["cp" not found!]);
+fi
+
+AC_PATH_PROG(RM,rm,rm)
+
+AC_PROG_CXX
+AC_LANG_CPLUSPLUS
+
+AM_DISABLE_STATIC
+AM_PROG_LIBTOOL
+
+FC_CHECK_BOOL
+FC_CHECK_IOS_BINARY
+FC_CHECK_NOTHROW
+
+AC_CHECK_HEADERS(cstring string.h fstream fstream.h)
+fc_new_cpp_headers="yes"
+if test "$ac_cv_header_cstring" = no ||
+   test "$ac_cv_header_fstream" = no; then
+	AC_DEFINE([FC_HAVE_OLD_CPP_HEADERS], 1, 
+        [Define only if old non-standard C++ headers are available.])
+    fc_new_cpp_headers="no"
+fi
+if test "$fc_new_cpp_headers" = no; then
+    if test "$ac_cv_header_cstring" = no ||
+       test "$ac_cv_header_fstream" = no; then
+        AC_MSG_ERROR(
+[Standard C++ library include files not found!]
+        );
+    fi
+fi
+
+AC_SUBST(CXXFLAGS)
+
+AC_OUTPUT(Makefile src/Makefile bmp-fc.spec)
