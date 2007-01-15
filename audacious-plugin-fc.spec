@@ -1,26 +1,25 @@
-%define plugindir %(pkg-config bmp --variable=input_plugin_dir)
+%define plugindir %(pkg-config audacious --variable=input_plugin_dir)
 
-Summary: Future Composer input plugin for BMP
-Name: bmp-fc
+Summary: Future Composer input plugin for Audacious
+Name: audacious-plugin-fc
 Version: 0.1
 Release: 1
 URL: http://xmms-fc.sourceforge.net/
 License: GPL
-Source:	http://download.sourceforge.net/xmms-fc/bmp-fc-0.1.tar.bz2
+Source:	http://download.sourceforge.net/xmms-fc/audacious-plugin-fc-0.1.tar.bz2
 Group: Applications/Multimedia
 Buildroot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot-%(%{__id_u} -n)
-BuildRequires: bmp-devel pkgconfig
-Requires: bmp
+BuildRequires: audacious-devel pkgconfig
+Requires: audacious
 
 %description
-This is an input plugin for BMP which can play back Future Composer
-music files from AMIGA. Song-length detection and seek are
-implemented, too.
+This is an input plugin for Audacious which can play back Future Composer
+music files from AMIGA. Song-length detection and seek are implemented, too.
 
 
 %prep
 %setup -q
-
+touch src/config.h  # work around broken Audacious util.h header
 
 %build
 %configure

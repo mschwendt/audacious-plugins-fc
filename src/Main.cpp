@@ -1,5 +1,5 @@
 //
-// => basic port to BMP <=
+// => basic port to Audacious <=
 //
 // AMIGA Future Composer music player plugin for XMMS
 // Copyright (C) 2000 Michael Schwendt <mschwendt@users.sf.net>
@@ -21,8 +21,8 @@
 
 extern "C"
 {
-#include <bmp/plugin.h>
-#include <bmp/util.h>
+#include <audacious/plugin.h>
+#include <audacious/util.h>
 }
 
 #ifdef FC_HAVE_OLD_CPP_HEADERS

@@ -1,6 +1,6 @@
 EXTRA_DIST = Config.h.in FC.README
 
-pkglibdir = `${PKG_CONFIG} bmp --variable=input_plugin_dir`
+pkglibdir = `${PKG_CONFIG} audacious --variable=input_plugin_dir`
 
 pkglib_LTLIBRARIES = libfc.la
 

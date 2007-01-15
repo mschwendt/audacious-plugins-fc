@@ -1,5 +1,5 @@
-#include <bmp/configfile.h>
-#include <bmp/util.h>
+#include <audacious/configdb.h>
+#include <audacious/util.h>
 #include <gtk/gtk.h>
 
 #include "configure.h"
@@ -30,21 +30,19 @@ static const gint FREQ_SAMPLE_11 = 11025;
 
 void fc_ip_load_config()
 {
-    ConfigFile *cfg;
-    gchar *filename;
+    ConfigDb *cfg;
 
     fc_myConfig.frequency = FREQ_SAMPLE_44;
     fc_myConfig.precision = 8;
     fc_myConfig.channels = 1;
     
-    filename = g_strconcat(g_get_home_dir(), "/.bmp/config", NULL);
-    if ((cfg = xmms_cfg_open_file(filename)))
+    if ((cfg = bmp_cfg_db_open()))
     {
-        xmms_cfg_read_int(cfg, configSection, "frequency", &fc_myConfig.frequency);
-        xmms_cfg_read_int(cfg, configSection, "precision", &fc_myConfig.precision);
-        xmms_cfg_read_int(cfg, configSection, "channels", &fc_myConfig.channels);
+        bmp_cfg_db_get_int(cfg, configSection, "frequency", &fc_myConfig.frequency);
+        bmp_cfg_db_get_int(cfg, configSection, "precision", &fc_myConfig.precision);
+        bmp_cfg_db_get_int(cfg, configSection, "channels", &fc_myConfig.channels);
 
-        xmms_cfg_free(cfg);
+        bmp_cfg_db_close(cfg);
     }
 }
 
@@ -230,8 +228,7 @@ void fc_ip_configure()
 
 static void config_ok(GtkWidget * widget, gpointer data)
 {
-	ConfigFile *cfg;
-	gchar *filename;
+	ConfigDb *cfg;
 
 	if (GTK_TOGGLE_BUTTON(Bits16)->active)
 		fc_myConfig.precision = 16;
@@ -252,17 +249,12 @@ static void config_ok(GtkWidget * widget, gpointer data)
 	if (GTK_TOGGLE_BUTTON(Sample_11)->active)
 		fc_myConfig.frequency = FREQ_SAMPLE_11;
 
-	filename = g_strconcat(g_get_home_dir(), "/.bmp/config", NULL);
-	cfg = xmms_cfg_open_file(filename);
-	if (!cfg)
-		cfg = xmms_cfg_new();
-
-    xmms_cfg_write_int(cfg, configSection, "frequency", fc_myConfig.frequency);
-    xmms_cfg_write_int(cfg, configSection, "precision", fc_myConfig.precision);
-    xmms_cfg_write_int(cfg, configSection, "channels", fc_myConfig.channels);
-
-	xmms_cfg_write_file(cfg, filename);
-	xmms_cfg_free(cfg);
-	g_free(filename);
+	if ((cfg = bmp_cfg_db_open()))
+    {
+        bmp_cfg_db_set_int(cfg, configSection, "frequency", fc_myConfig.frequency);
+        bmp_cfg_db_set_int(cfg, configSection, "precision", fc_myConfig.precision);
+        bmp_cfg_db_set_int(cfg, configSection, "channels", fc_myConfig.channels);
+        bmp_cfg_db_close(cfg);
+    }
 	gtk_widget_destroy(fc_config_window);
 }

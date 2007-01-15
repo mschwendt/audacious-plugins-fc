@@ -1,10 +1,10 @@
-bmp-fc -- http://xmms-fc.sf.net
+audacious-plugin-fc -- http://xmms-fc.sf.net
 
-This BMP plug-in is a port of the XMMS plug-in which in turn is based on
-an unmaintained piece of code which is my `Future Composer Reference
-Player for Linux'. Because the source code has been imported into CVS long
-since its last modification, the timestamps of the files in CVS do not
-reflect that the core code has not been worked on for years.
+This plug-in for Audacious is a port of the XMMS/BMP plug-in which in turn
+is based on an unmaintained piece of code which is my `Future Composer
+Reference Player for Linux'. Because the source code has been imported
+into CVS long since its last modification, the timestamps of the files in
+CVS do not reflect that the core code has not been worked on for years.
 
 See FC.README in the source directory for more about that code. You
 can get the original package at:

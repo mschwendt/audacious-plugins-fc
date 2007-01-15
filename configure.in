@@ -1,5 +1,5 @@
 AC_INIT(src/FC.cpp)
-AM_INIT_AUTOMAKE(bmp-fc, 0.1)
+AM_INIT_AUTOMAKE(audacious-plugin-fc, 0.1)
 AM_CONFIG_HEADER(src/Config.h)
 
 AC_CANONICAL_HOST
@@ -22,11 +22,11 @@ AC_CHECK_SIZEOF(long int)
 
 AC_HEADER_STDC
 
-PKG_CHECK_MODULES(BMP, bmp)
-if test "x$BMP_LIBS" != "x"; then
-   CFLAGS="$CFLAGS $BMP_CFLAGS"
-   CXXFLAGS="$CXXFLAGS $BMP_CFLAGS"
-   LIBS="$LIBS $BMP_LIBS"
+PKG_CHECK_MODULES(AUDACIOUS, audacious)
+if test "x$AUDACIOUS_LIBS" != "x"; then
+   CFLAGS="$CFLAGS $AUDACIOUS_CFLAGS"
+   CXXFLAGS="$CXXFLAGS $AUDACIOUS_CFLAGS"
+   LIBS="$LIBS $AUDACIOUS_LIBS"
    AC_MSG_RESULT(yes)
 else
    AC_MSG_RESULT(no)
@@ -73,4 +73,4 @@ fi
 
 AC_SUBST(CXXFLAGS)
 
-AC_OUTPUT(Makefile src/Makefile bmp-fc.spec)
+AC_OUTPUT(Makefile src/Makefile audacious-plugin-fc.spec)
