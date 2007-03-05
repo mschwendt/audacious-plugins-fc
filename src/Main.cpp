@@ -23,13 +23,12 @@ extern "C"
 {
 #include <audacious/plugin.h>
 #include <audacious/util.h>
+#include <audacious/vfs.h>
 }
 
 #ifdef FC_HAVE_OLD_CPP_HEADERS
-#include <fstream.h>
 #include <string.h>
 #else
-#include <fstream>
 #include <cstring>
 using namespace std;
 #endif
@@ -66,11 +65,12 @@ extern "C"
 
 static void ip_init(void);
 static gint ip_is_valid_file(gchar *fileName);
-static void ip_play_file(gchar *fileName);
-static void ip_stop(void);
-static void ip_pause(gshort p);
-static void ip_seek(gint t);
-static gint ip_get_time(void);
+static gint ip_is_valid_file_vfs(gchar *fileName, VFSFile *fd);
+static void ip_play_file(InputPlayback *playback);
+static void ip_stop(InputPlayback *playback);
+static void ip_pause(InputPlayback *playback, gshort p);
+static void ip_seek(InputPlayback *playback, gint t);
+static gint ip_get_time(InputPlayback *playback);
 static void ip_get_song_info(gchar *fileName, gchar **title, gint *length);
 
 static pthread_t decode_thread;
@@ -83,7 +83,7 @@ InputPlugin iplugin =
     ip_init,
     fc_ip_about,
     fc_ip_configure,
-    ip_is_valid_file,
+    NULL,
     NULL,
     ip_play_file,
     ip_stop,
@@ -100,6 +100,14 @@ InputPlugin iplugin =
     NULL,
     ip_get_song_info,
     NULL,
+    NULL,
+
+    NULL,
+    NULL,
+    NULL,
+
+    // 1.3.0
+    ip_is_valid_file_vfs,
     NULL
 };
 
@@ -111,7 +119,7 @@ InputPlugin *get_iplugin_info(void)
 static const udword extraFileBufLen = 8+1;  // see FC.cpp
 
 static ubyte* fileBuf = 0;
-static streampos fileLen = 0;
+static glong fileLen = 0;
 
 static int sampleBufSize = 0;
 static ubyte* sampleBuf = 0;
@@ -125,9 +133,9 @@ static void deleteFileBuf()
     if (fileBuf != 0)
     {
         delete[] fileBuf;
-        fileBuf = 0;
-        fileLen = 0;
     }
+    fileBuf = 0;
+    fileLen = 0;
 }
     
 static void deleteSampleBuf()
@@ -144,48 +152,29 @@ static bool loadFile(char* fileName)
 {
     deleteFileBuf();
     
-    // Open binary input file stream at end of file.
-#ifdef FC_HAVE_IOS_BINARY
-    ifstream myIn( fileName, ios::in | ios::binary );  // | ios::ate );
-#else
-    ifstream myIn( fileName, ios::in | ios::bin );     // | ios::ate );
-#endif
-    // As a replacement for !is_open(), bad() and the NOT-operator
-    // do not seem to work on all systems.
-#ifdef FC_DONT_HAVE_IS_OPEN
-    if ( !myIn )
-#else
-    if ( !myIn.is_open() )
-#endif
-    {
+    VFSFile *fd = vfs_fopen(fileName,"rb");
+    if (!fd) {
         return false;
     }
-#ifdef FC_HAVE_SEEKG_OFFSET
-    fileLen = (myIn.seekg(0,ios::end)).offset();
-#else
-    myIn.seekg(0,ios::end);
-    fileLen = (udword)myIn.tellg();
-#endif
-    fileLen = myIn.tellg();
+    if ( vfs_fseek(fd,0,SEEK_END)!=0 ) return false;
+    fileLen = vfs_ftell(fd);
+    if ( vfs_fseek(fd,0,SEEK_SET)!=0 ) return false;
+
 #ifdef FC_HAVE_NOTHROW
-    if ((fileBuf = new(std::nothrow) ubyte[(long int)fileLen+extraFileBufLen]) == 0)
+    if ((fileBuf = new(std::nothrow) ubyte[fileLen+extraFileBufLen]) == 0)
 #else
-    if ((fileBuf = new ubyte[(long int)fileLen+extraFileBufLen]) == 0)
+    if ((fileBuf = new ubyte[fileLen+extraFileBufLen]) == 0)
 #endif
     {
         fileLen = 0;
         return false;
     }
-    
-    myIn.seekg(0,ios::beg);
-    myIn.read( (char*)fileBuf, fileLen );
-    
-    if ( myIn.bad() )
+    if ( fileLen != vfs_fread((char*)fileBuf,1,fileLen,fd) )
     {
         deleteFileBuf();
         return false;
     }
-    myIn.close();
+    vfs_fclose(fd);
     return true;
 }
 
@@ -254,37 +243,13 @@ static void ip_init(void)
     fc_ip_load_config();
 }
 
-static gint ip_is_valid_file(gchar* fileName)
+static gint ip_is_valid_file_vfs(gchar *fileName, VFSFile *fd)
 {
-    const char prefix[] = "file://";
-    if ( 0 == strncasecmp( fileName, prefix, strlen(prefix) ) )
-        fileName += strlen(prefix);
     ubyte magicBuf[5];
-    
-    // Open binary input file stream at end of file.
-#ifdef FC_HAVE_IOS_BINARY
-    ifstream myIn( fileName, ios::in | ios::binary );
-#else
-    ifstream myIn( fileName, ios::in | ios::bin );
-#endif
-    // As a replacement for !is_open(), bad() and the NOT-operator
-    // do not seem to work on all systems.
-#ifdef FC_DONT_HAVE_IS_OPEN
-    if ( !myIn )
-#else
-    if ( !myIn.is_open() )
-#endif
-    {
-        return 0;
+    if ( 5 != vfs_fread(magicBuf,1,5,fd) ) {
+        return false;
     }
     
-    myIn.read( (char*)magicBuf, 5 );
-    if ( myIn.bad() )
-    {
-        return 0;
-    }
-    myIn.close();
-
     // See FC.cpp
     // Check for "SMOD" ID (Future Composer 1.0 to 1.3).
     bool isSMOD = (magicBuf[0]==0x53 && magicBuf[1]==0x4D &&
@@ -299,22 +264,21 @@ static gint ip_is_valid_file(gchar* fileName)
     return ((isSMOD|isFC14) ? 1 : 0);
 }
 
-static void ip_play_file(gchar *fileName)
+static void ip_play_file(InputPlayback *playback)
 {
     playing = false;
     paused = true;
     jumpToTime = -1;
     
     bool haveModule = false;
-    
-    const char prefix[] = "file://";
-    if ( 0 == strncasecmp( fileName, prefix, strlen(prefix) ) )
-        fileName += strlen(prefix);
-    if ( loadFile(fileName) )
+
+    if ( loadFile(playback->filename) )
     {
         haveModule = FC_init(fileBuf,fileLen,0,0);
     }
-
+    else {
+        return;
+    }
     myFormat.freq = fc_myConfig.frequency;
     myFormat.channels = fc_myConfig.channels;
     if (fc_myConfig.precision == 8)
@@ -402,11 +366,11 @@ static void ip_play_file(gchar *fileName)
     
         gint bitsPerSec = myFormat.freq * myFormat.channels * myFormat.bits;
         gchar* title;
-        gchar* pathSepPos = strrchr( fileName, '/' );
+        gchar* pathSepPos = strrchr( playback->filename, '/' );
         if ( pathSepPos!=0 && pathSepPos[1]!=0 )  // found file name
             title = pathSepPos+1;
         else
-            title = fileName;
+            title = playback->filename;
         iplugin.set_info( title, msecSongLen, bitsPerSec, myFormat.freq, myFormat.channels );
 
         int usecPerBuf = (sampleBufSize * 1000000) / (myFormat.freq * myFormat.channels * (myFormat.bits/8));
@@ -424,7 +388,7 @@ static void ip_play_file(gchar *fileName)
     }
 }
     
-static void ip_stop(void)
+static void ip_stop(InputPlayback *playback)
 {
     if ( fileBuf!=0 && playing )
     {
@@ -438,12 +402,12 @@ static void ip_stop(void)
     }
 }
 
-static void ip_pause(gshort p)
+static void ip_pause(InputPlayback *playback, gshort p)
 {
     iplugin.output->pause(p);
 }
 
-static void ip_seek(gint secs)
+static void ip_seek(InputPlayback *playback, gint secs)
 {
     jumpToTime = secs * 1000;
     
@@ -451,7 +415,7 @@ static void ip_seek(gint secs)
         xmms_usleep(10000);
 }
 
-static gint ip_get_time(void)
+static gint ip_get_time(InputPlayback *playback)
 {
     if (iplugin.output)
     {
