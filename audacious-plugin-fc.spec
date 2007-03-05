@@ -2,11 +2,11 @@
 
 Summary: Future Composer input plugin for Audacious
 Name: audacious-plugin-fc
-Version: 0.1
+Version: 0.2
 Release: 1
 URL: http://xmms-fc.sourceforge.net/
 License: GPL
-Source:	http://download.sourceforge.net/xmms-fc/audacious-plugin-fc-0.1.tar.bz2
+Source:	http://download.sourceforge.net/xmms-fc/audacious-plugin-fc-0.2.tar.bz2
 Group: Applications/Multimedia
 Buildroot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot-%(%{__id_u} -n)
 BuildRequires: audacious-devel pkgconfig
@@ -19,7 +19,7 @@ music files from AMIGA. Song-length detection and seek are implemented, too.
 
 %prep
 %setup -q
-touch src/config.h  # work around broken Audacious util.h header
+
 
 %build
 %configure

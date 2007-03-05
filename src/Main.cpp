@@ -64,7 +64,6 @@ extern "C"
 #include "configure.h"
 
 static void ip_init(void);
-static gint ip_is_valid_file(gchar *fileName);
 static gint ip_is_valid_file_vfs(gchar *fileName, VFSFile *fd);
 static void ip_play_file(InputPlayback *playback);
 static void ip_stop(InputPlayback *playback);

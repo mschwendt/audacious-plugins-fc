@@ -19,7 +19,7 @@ music files from AMIGA. Song-length detection and seek are implemented, too.
 
 %prep
 %setup -q
-touch src/config.h  # work around broken Audacious util.h header
+
 
 %build
 %configure
