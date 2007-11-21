@@ -33,8 +33,6 @@ extern "C"
 using namespace std;
 #endif
 
-#include <pthread.h>
-
 #include "Config.h"
 #ifdef FC_HAVE_NOTHROW
 #include <new>
@@ -72,7 +70,9 @@ static void ip_seek(InputPlayback *playback, gint t);
 static gint ip_get_time(InputPlayback *playback);
 static void ip_get_song_info(gchar *fileName, gchar **title, gint *length);
 
-static pthread_t decode_thread;
+static GThread *decode_thread;
+
+static gchar *fc_fmts[] = { "fc", "fc13", "fc14", NULL };
 
 InputPlugin iplugin =
 {
@@ -84,7 +84,7 @@ InputPlugin iplugin =
     NULL,
     fc_ip_about,
     fc_ip_configure,
-    true,
+    TRUE,
 
     NULL,
     NULL,
@@ -117,20 +117,19 @@ InputPlugin iplugin =
 
     // 1.3.0
     ip_is_valid_file_vfs,
-    NULL,
+    fc_fmts,
 
     // 1.4.0
     NULL,
     NULL,
 
     // 1.4.1
-    false
+    FALSE
 };
 
-InputPlugin *get_iplugin_info(void)
-{
-    return &iplugin;
-}
+static InputPlugin *fc_iplist[] = { &iplugin, NULL };
+
+SIMPLE_INPUT_PLUGIN(libfc, fc_iplist);
 
 static const udword extraFileBufLen = 8+1;  // see FC.cpp
 
@@ -140,8 +139,6 @@ static gulong fileLen = 0;
 static int sampleBufSize = 0;
 static ubyte* sampleBuf = 0;
 
-static bool playing = false;
-static bool paused = true;
 static int jumpToTime = -1;
 
 static void deleteFileBuf()
@@ -168,13 +165,13 @@ static bool loadFile(char* fileName)
 {
     deleteFileBuf();
     
-    VFSFile *fd = vfs_fopen(fileName,"rb");
+    VFSFile *fd = aud_vfs_fopen(fileName,"rb");
     if (!fd) {
         return false;
     }
-    if ( vfs_fseek(fd,0,SEEK_END)!=0 ) return false;
-    fileLen = vfs_ftell(fd);
-    if ( vfs_fseek(fd,0,SEEK_SET)!=0 ) return false;
+    if ( aud_vfs_fseek(fd,0,SEEK_END)!=0 ) return false;
+    fileLen = aud_vfs_ftell(fd);
+    if ( aud_vfs_fseek(fd,0,SEEK_SET)!=0 ) return false;
 
 #ifdef FC_HAVE_NOTHROW
     if ((fileBuf = new(std::nothrow) ubyte[fileLen+extraFileBufLen]) == 0)
@@ -185,12 +182,12 @@ static bool loadFile(char* fileName)
         fileLen = 0;
         return false;
     }
-    if ( fileLen != vfs_fread((char*)fileBuf,1,fileLen,fd) )
+    if ( fileLen != aud_vfs_fread((char*)fileBuf,1,fileLen,fd) )
     {
         deleteFileBuf();
         return false;
     }
-    vfs_fclose(fd);
+    aud_vfs_fclose(fd);
     return true;
 }
 
@@ -200,57 +197,41 @@ static int sleepVal;
 
 static void *play_loop(void *arg)
 {
-    bool stop = false;
-    while ( playing )
+    InputPlayback *playback = (InputPlayback*)arg;
+    while ( playback->playing )
     {
-        if ( paused && stop )
-        {
-            memset(sampleBuf,0,sampleBufSize);
-        }
+	mixerFillBuffer(sampleBuf,sampleBufSize);
+	while ( playback->output->buffer_free() < sampleBufSize && playback->playing )
+	    g_usleep( sleepVal );
+	if ( playback->playing && jumpToTime<0 )
+	    playback->pass_audio(playback,myFormat.xmmsAFormat,myFormat.channels,sampleBufSize,sampleBuf,&playback->playing);
+	if ( FC_songEnd && jumpToTime<0 )
+	{
+	    playback->output->buffer_free();
+	    playback->output->buffer_free();
+	    while ( playback->output->buffer_playing()  )
+	    {
+	        g_usleep(10000);
+            }
+	    playback->playing = false;
+	}
         if ( jumpToTime != -1 )
         {
-            iplugin.output->flush(jumpToTime);
             FC_init(fileBuf,fileLen,0,0);
             while (jumpToTime > 0)
             {
                 FC_play();
                 jumpToTime -= 20;
             };
+	    playback->output->flush(jumpToTime);
             jumpToTime = -1;
-            stop = false;
-        }
-        if ( !stop )
-        {
-            mixerFillBuffer(sampleBuf,sampleBufSize);
-            iplugin.add_vis_pcm(iplugin.output->written_time(),
-                                myFormat.xmmsAFormat, myFormat.channels,
-                                sampleBufSize, sampleBuf);
-            while ( iplugin.output->buffer_free() < sampleBufSize && playing )
-                g_usleep( sleepVal );
-            if ( playing && jumpToTime<0 )
-                iplugin.output->write_audio(sampleBuf,sampleBufSize);
-            if ( FC_songEnd && jumpToTime<0 )
-            {
-                iplugin.output->buffer_free();
-                iplugin.output->buffer_free();
-                while ( iplugin.output->buffer_playing() && playing && jumpToTime<0 )
-                {
-                    g_usleep(10000);
-                }
-                stop = true;
-            }
-        }
-        else
-        {
-            g_usleep( 10000 );
         }
     }
-    pthread_exit(NULL);
+    return NULL;
 }
 
 static void ip_init(void)
 {
-    playing = false;
     fileBuf = 0;
     fileLen = 0;
     sampleBuf = 0;
@@ -262,7 +243,7 @@ static void ip_init(void)
 static gint ip_is_valid_file_vfs(gchar *fileName, VFSFile *fd)
 {
     ubyte magicBuf[5];
-    if ( 5 != vfs_fread(magicBuf,1,5,fd) ) {
+    if ( 5 != aud_vfs_fread(magicBuf,1,5,fd) ) {
         return false;
     }
     
@@ -282,8 +263,7 @@ static gint ip_is_valid_file_vfs(gchar *fileName, VFSFile *fd)
 
 static void ip_play_file(InputPlayback *playback)
 {
-    playing = false;
-    paused = true;
+    playback->playing = false;
     jumpToTime = -1;
     
     bool haveModule = false;
@@ -319,9 +299,9 @@ static void ip_play_file(InputPlayback *playback)
     
     if (myFormat.freq>0 && myFormat.channels>0)
     {
-        audioDriverOK = (iplugin.output->open_audio(myFormat.xmmsAFormat,
-                                                    myFormat.freq,
-                                                    myFormat.channels) != 0);
+        audioDriverOK = (playback->output->open_audio(myFormat.xmmsAFormat,
+                                                      myFormat.freq,
+                                                      myFormat.channels) != 0);
     }
 
     if ( !audioDriverOK )
@@ -346,9 +326,9 @@ static void ip_play_file(InputPlayback *playback)
         {
             myFormat = formatList[i];
             
-            if (iplugin.output->open_audio(myFormat.xmmsAFormat,
-                                           myFormat.freq,
-                                           myFormat.channels) != 0)
+            if (playback->output->open_audio(myFormat.xmmsAFormat,
+                                             myFormat.freq,
+                                             myFormat.channels) != 0)
             {
                 audioDriverOK = true;
                 break;
@@ -387,15 +367,15 @@ static void ip_play_file(InputPlayback *playback)
             title = pathSepPos+1;
         else
             title = playback->filename;
-        iplugin.set_info( title, msecSongLen, bitsPerSec, myFormat.freq, myFormat.channels );
-
+	playback->set_params( playback, title, msecSongLen, bitsPerSec, myFormat.freq, myFormat.channels );
         int usecPerBuf = (sampleBufSize * 1000000) / (myFormat.freq * myFormat.channels * (myFormat.bits/8));
         sleepVal = usecPerBuf;
         
-        paused = false;
-        playing = true;
+        playback->playing = true;
         
-        pthread_create(&decode_thread, NULL, play_loop, NULL);
+        decode_thread = g_thread_self();
+	playback->set_pb_ready(playback);
+        play_loop(playback);
     }
     else
     {
@@ -406,12 +386,11 @@ static void ip_play_file(InputPlayback *playback)
     
 static void ip_stop(InputPlayback *playback)
 {
-    if ( fileBuf!=0 && playing )
+    if ( fileBuf!=0 && playback->playing )
     {
-        playing = false;
-        paused = true;
-        pthread_join(decode_thread, NULL);
-        iplugin.output->close_audio();
+        playback->playing = false;
+        g_thread_join(decode_thread);
+        playback->output->close_audio();
         
         deleteSampleBuf();
         deleteFileBuf();
@@ -420,7 +399,7 @@ static void ip_stop(InputPlayback *playback)
 
 static void ip_pause(InputPlayback *playback, gshort p)
 {
-    iplugin.output->pause(p);
+    playback->output->pause(p);
 }
 
 static void ip_seek(InputPlayback *playback, gint secs)
@@ -433,17 +412,12 @@ static void ip_seek(InputPlayback *playback, gint secs)
 
 static gint ip_get_time(InputPlayback *playback)
 {
-    if (iplugin.output)
-    {
-        if ( playing && FC_songEnd && !iplugin.output->buffer_playing() )
-            return -1;  // stop and next file
-        else if ( playing )
-            return iplugin.output->output_time();
-        else
-            return -1;
-    }
-    else
-        return -1;
+  if ( playback->playing && FC_songEnd && !playback->output->buffer_playing() )
+      return -1;  // stop and next file
+  else if ( playback->playing )
+      return playback->output->output_time();
+  else
+      return -1;
 }
 
 static void ip_get_song_info(gchar *fileName, gchar **title, gint *length)
