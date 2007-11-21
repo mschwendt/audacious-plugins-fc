@@ -139,7 +139,7 @@ static gulong fileLen = 0;
 static int sampleBufSize = 0;
 static ubyte* sampleBuf = 0;
 
-static int jumpToTime = -1;
+static gint jumpToTime = -1;
 
 static void deleteFileBuf()
 {
@@ -200,30 +200,31 @@ static void *play_loop(void *arg)
     InputPlayback *playback = (InputPlayback*)arg;
     while ( playback->playing )
     {
-	mixerFillBuffer(sampleBuf,sampleBufSize);
-	while ( playback->output->buffer_free() < sampleBufSize && playback->playing )
-	    g_usleep( sleepVal );
-	if ( playback->playing && jumpToTime<0 )
-	    playback->pass_audio(playback,myFormat.xmmsAFormat,myFormat.channels,sampleBufSize,sampleBuf,&playback->playing);
-	if ( FC_songEnd && jumpToTime<0 )
-	{
-	    playback->output->buffer_free();
-	    playback->output->buffer_free();
-	    while ( playback->output->buffer_playing()  )
-	    {
-	        g_usleep(10000);
+        mixerFillBuffer(sampleBuf,sampleBufSize);
+        while ( playback->output->buffer_free() < sampleBufSize && playback->playing )
+            g_usleep( sleepVal );
+        if ( playback->playing && jumpToTime<0 )
+            playback->pass_audio(playback,myFormat.xmmsAFormat,myFormat.channels,sampleBufSize,sampleBuf,&playback->playing);
+        if ( FC_songEnd && jumpToTime<0 )
+        {
+            playback->output->buffer_free();
+            playback->output->buffer_free();
+            while ( playback->output->buffer_playing()  )
+            {
+                g_usleep(10000);
             }
-	    playback->playing = false;
-	}
+            playback->playing = false;
+        }
         if ( jumpToTime != -1 )
         {
             FC_init(fileBuf,fileLen,0,0);
-            while (jumpToTime > 0)
+            gint j = jumpToTime;
+            while (j > 0)
             {
                 FC_play();
-                jumpToTime -= 20;
+                j -= 20;
             };
-	    playback->output->flush(jumpToTime);
+            playback->output->flush(jumpToTime);
             jumpToTime = -1;
         }
     }
@@ -367,14 +368,14 @@ static void ip_play_file(InputPlayback *playback)
             title = pathSepPos+1;
         else
             title = playback->filename;
-	playback->set_params( playback, title, msecSongLen, bitsPerSec, myFormat.freq, myFormat.channels );
+        playback->set_params( playback, title, msecSongLen, bitsPerSec, myFormat.freq, myFormat.channels );
         int usecPerBuf = (sampleBufSize * 1000000) / (myFormat.freq * myFormat.channels * (myFormat.bits/8));
         sleepVal = usecPerBuf;
         
         playback->playing = true;
         
         decode_thread = g_thread_self();
-	playback->set_pb_ready(playback);
+        playback->set_pb_ready(playback);
         play_loop(playback);
     }
     else
