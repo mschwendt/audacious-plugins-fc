@@ -78,27 +78,37 @@ InputPlugin iplugin =
 {
     NULL,
     NULL,
+
     "Future Composer Player",
     ip_init,
+    NULL,
     fc_ip_about,
     fc_ip_configure,
+    true,
+
     NULL,
     NULL,
+
     ip_play_file,
     ip_stop,
     ip_pause,
     ip_seek,
+
     NULL,
+
     ip_get_time,
+
     NULL,
     NULL,
+
     NULL,
     NULL,
-    NULL,
+
     NULL,
     NULL,
     ip_get_song_info,
     NULL,
+
     NULL,
 
     NULL,
@@ -107,7 +117,14 @@ InputPlugin iplugin =
 
     // 1.3.0
     ip_is_valid_file_vfs,
-    NULL
+    NULL,
+
+    // 1.4.0
+    NULL,
+    NULL,
+
+    // 1.4.1
+    false
 };
 
 InputPlugin *get_iplugin_info(void)
@@ -118,7 +135,7 @@ InputPlugin *get_iplugin_info(void)
 static const udword extraFileBufLen = 8+1;  // see FC.cpp
 
 static ubyte* fileBuf = 0;
-static glong fileLen = 0;
+static gulong fileLen = 0;
 
 static int sampleBufSize = 0;
 static ubyte* sampleBuf = 0;
@@ -209,7 +226,7 @@ static void *play_loop(void *arg)
                                 myFormat.xmmsAFormat, myFormat.channels,
                                 sampleBufSize, sampleBuf);
             while ( iplugin.output->buffer_free() < sampleBufSize && playing )
-                xmms_usleep( sleepVal );
+                g_usleep( sleepVal );
             if ( playing && jumpToTime<0 )
                 iplugin.output->write_audio(sampleBuf,sampleBufSize);
             if ( FC_songEnd && jumpToTime<0 )
@@ -218,14 +235,14 @@ static void *play_loop(void *arg)
                 iplugin.output->buffer_free();
                 while ( iplugin.output->buffer_playing() && playing && jumpToTime<0 )
                 {
-                    xmms_usleep(10000);
+                    g_usleep(10000);
                 }
                 stop = true;
             }
         }
         else
         {
-            xmms_usleep( 10000 );
+            g_usleep( 10000 );
         }
     }
     pthread_exit(NULL);
@@ -411,7 +428,7 @@ static void ip_seek(InputPlayback *playback, gint secs)
     jumpToTime = secs * 1000;
     
     while (jumpToTime != -1)
-        xmms_usleep(10000);
+        g_usleep(10000);
 }
 
 static gint ip_get_time(InputPlayback *playback)
