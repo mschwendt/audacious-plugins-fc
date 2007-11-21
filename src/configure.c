@@ -36,13 +36,13 @@ void fc_ip_load_config()
     fc_myConfig.precision = 8;
     fc_myConfig.channels = 1;
     
-    if ((cfg = bmp_cfg_db_open()))
+    if ((cfg = aud_cfg_db_open()))
     {
-        bmp_cfg_db_get_int(cfg, configSection, "frequency", &fc_myConfig.frequency);
-        bmp_cfg_db_get_int(cfg, configSection, "precision", &fc_myConfig.precision);
-        bmp_cfg_db_get_int(cfg, configSection, "channels", &fc_myConfig.channels);
+        aud_cfg_db_get_int(cfg, configSection, "frequency", &fc_myConfig.frequency);
+        aud_cfg_db_get_int(cfg, configSection, "precision", &fc_myConfig.precision);
+        aud_cfg_db_get_int(cfg, configSection, "channels", &fc_myConfig.channels);
 
-        bmp_cfg_db_close(cfg);
+        aud_cfg_db_close(cfg);
     }
 }
 
@@ -249,12 +249,12 @@ static void config_ok(GtkWidget * widget, gpointer data)
 	if (GTK_TOGGLE_BUTTON(Sample_11)->active)
 		fc_myConfig.frequency = FREQ_SAMPLE_11;
 
-	if ((cfg = bmp_cfg_db_open()))
+	if ((cfg = aud_cfg_db_open()))
     {
-        bmp_cfg_db_set_int(cfg, configSection, "frequency", fc_myConfig.frequency);
-        bmp_cfg_db_set_int(cfg, configSection, "precision", fc_myConfig.precision);
-        bmp_cfg_db_set_int(cfg, configSection, "channels", fc_myConfig.channels);
-        bmp_cfg_db_close(cfg);
+        aud_cfg_db_set_int(cfg, configSection, "frequency", fc_myConfig.frequency);
+        aud_cfg_db_set_int(cfg, configSection, "precision", fc_myConfig.precision);
+        aud_cfg_db_set_int(cfg, configSection, "channels", fc_myConfig.channels);
+        aud_cfg_db_close(cfg);
     }
 	gtk_widget_destroy(fc_config_window);
 }
