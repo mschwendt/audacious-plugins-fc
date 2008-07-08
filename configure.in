@@ -1,13 +1,14 @@
-AC_INIT(src/FC.cpp)
+AC_INIT
+AC_CONFIG_SRCDIR([src/FC.cpp])
 AM_INIT_AUTOMAKE(audacious-plugin-fc, 0.2)
-AM_CONFIG_HEADER(src/Config.h)
+AC_CONFIG_HEADERS([src/Config.h])
 
 AC_CANONICAL_HOST
 dnl AC_PREFIX_DEFAULT(/usr)
 AC_EXEEXT()
 
 AC_PROG_CC
-AC_LANG_C
+AC_LANG([C])
 
 AC_C_BIGENDIAN
 dnl echo $ac_cv_c_bigendian
@@ -45,7 +46,7 @@ fi
 AC_PATH_PROG(RM,rm,rm)
 
 AC_PROG_CXX
-AC_LANG_CPLUSPLUS
+AC_LANG([C++])
 
 AM_DISABLE_STATIC
 AM_PROG_LIBTOOL
@@ -73,4 +74,5 @@ fi
 
 AC_SUBST(CXXFLAGS)
 
-AC_OUTPUT(Makefile src/Makefile audacious-plugin-fc.spec)
+AC_CONFIG_FILES([Makefile src/Makefile audacious-plugin-fc.spec])
+AC_OUTPUT
