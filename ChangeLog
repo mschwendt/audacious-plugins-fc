@@ -1,3 +1,8 @@
+2009-06-07    Michael Schwendt <mschwendt@users.sf.net>
+
+	* src/Main.cpp: port to Audacious 2.0.1 API
+	* src/configure.c: make dialogs raisable and use show_all
+
 2007-11-21    Michael Schwendt <mschwendt@users.sf.net>
 
 	* src/Main.cpp, src/configure.c: port to Audacious 1.4.0 API

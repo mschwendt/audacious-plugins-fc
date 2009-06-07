@@ -2,11 +2,11 @@
 
 Summary: Future Composer input plugin for Audacious
 Name: audacious-plugin-fc
-Version: 0.2
+Version: 0.3
 Release: 1
 URL: http://xmms-fc.sourceforge.net/
 License: GPL
-Source:	http://download.sourceforge.net/xmms-fc/audacious-plugin-fc-0.2.tar.bz2
+Source:	http://download.sourceforge.net/xmms-fc/audacious-plugin-fc-0.3.tar.bz2
 Group: Applications/Multimedia
 Buildroot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot-%(%{__id_u} -n)
 BuildRequires: audacious-devel pkgconfig
