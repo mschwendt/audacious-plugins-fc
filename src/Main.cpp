@@ -1,5 +1,5 @@
 //
-// => basic port to Audacious <=
+// => basic port to Audacious 2 <=
 //
 // AMIGA Future Composer music player plugin for XMMS
 // Copyright (C) 2000 Michael Schwendt <mschwendt@users.sf.net>
@@ -23,7 +23,6 @@ extern "C"
 {
 #include <audacious/plugin.h>
 #include <audacious/util.h>
-#include <audacious/vfs.h>
 }
 
 #ifdef FC_HAVE_OLD_CPP_HEADERS
@@ -94,8 +93,6 @@ InputPlugin iplugin =
     ip_pause,
     ip_seek,
 
-    NULL,
-
     ip_get_time,
 
     NULL,
@@ -107,11 +104,6 @@ InputPlugin iplugin =
     NULL,
     NULL,
     ip_get_song_info,
-    NULL,
-
-    NULL,
-
-    NULL,
     NULL,
     NULL,
 
