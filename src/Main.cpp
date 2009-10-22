@@ -23,6 +23,7 @@ extern "C"
 {
 #include <audacious/plugin.h>
 #include <audacious/util.h>
+#include <glib.h>
 }
 
 #ifdef FC_HAVE_OLD_CPP_HEADERS
@@ -60,68 +61,7 @@ extern "C"
 #include "about.h"
 #include "configure.h"
 
-static void ip_init(void);
-static gint ip_is_valid_file_vfs(gchar *fileName, VFSFile *fd);
-static void ip_play_file(InputPlayback *playback);
-static void ip_stop(InputPlayback *playback);
-static void ip_pause(InputPlayback *playback, gshort p);
-static void ip_seek(InputPlayback *playback, gint t);
-static gint ip_get_time(InputPlayback *playback);
-static void ip_get_song_info(gchar *fileName, gchar **title, gint *length);
-
 static GThread *decode_thread;
-
-static gchar *fc_fmts[] = { "fc", "fc13", "fc14", NULL };
-
-InputPlugin iplugin =
-{
-    NULL,
-    NULL,
-
-    "Future Composer Player",
-    ip_init,
-    NULL,
-    fc_ip_about,
-    fc_ip_configure,
-    TRUE,
-
-    NULL,
-    NULL,
-
-    ip_play_file,
-    ip_stop,
-    ip_pause,
-    ip_seek,
-
-    ip_get_time,
-
-    NULL,
-    NULL,
-
-    NULL,
-    NULL,
-
-    NULL,
-    NULL,
-    ip_get_song_info,
-    NULL,
-    NULL,
-
-    // 1.3.0
-    ip_is_valid_file_vfs,
-    fc_fmts,
-
-    // 1.4.0
-    NULL,
-    NULL,
-
-    // 1.4.1
-    FALSE
-};
-
-static InputPlugin *fc_iplist[] = { &iplugin, NULL };
-
-SIMPLE_INPUT_PLUGIN(libfc, fc_iplist);
 
 static const udword extraFileBufLen = 8+1;  // see FC.cpp
 
@@ -131,9 +71,11 @@ static gulong fileLen = 0;
 static int sampleBufSize = 0;
 static ubyte* sampleBuf = 0;
 
+static GMutex *seek_mutex;
+static GCond *seek_cond;
 static gint jumpToTime = -1;
 
-static void deleteFileBuf()
+void deleteFileBuf()
 {
     if (fileBuf != 0)
     {
@@ -143,7 +85,7 @@ static void deleteFileBuf()
     fileLen = 0;
 }
     
-static void deleteSampleBuf()
+void deleteSampleBuf()
 {
     if (sampleBuf != 0)
     {
@@ -153,7 +95,7 @@ static void deleteSampleBuf()
     }
 }
 
-static bool loadFile(char* fileName)
+bool loadFile(char* fileName)
 {
     deleteFileBuf();
     
@@ -183,57 +125,27 @@ static bool loadFile(char* fileName)
     return true;
 }
 
-// Microsecs to sleep when audio driver does not accept new
-// sample buffer contents.
-static int sleepVal;
-
-static void *play_loop(void *arg)
-{
-    InputPlayback *playback = (InputPlayback*)arg;
-    while ( playback->playing )
-    {
-        mixerFillBuffer(sampleBuf,sampleBufSize);
-        while ( playback->output->buffer_free() < sampleBufSize && playback->playing )
-            g_usleep( sleepVal );
-        if ( playback->playing && jumpToTime<0 )
-            playback->pass_audio(playback,myFormat.xmmsAFormat,myFormat.channels,sampleBufSize,sampleBuf,&playback->playing);
-        if ( FC_songEnd && jumpToTime<0 )
-        {
-            playback->output->buffer_free();
-            playback->output->buffer_free();
-            while ( playback->output->buffer_playing()  )
-            {
-                g_usleep(10000);
-            }
-            playback->playing = false;
-        }
-        if ( jumpToTime != -1 )
-        {
-            FC_init(fileBuf,fileLen,0,0);
-            gint j = jumpToTime;
-            while (j > 0)
-            {
-                FC_play();
-                j -= 20;
-            };
-            playback->output->flush(jumpToTime);
-            jumpToTime = -1;
-        }
-    }
-    return NULL;
-}
-
-static void ip_init(void)
+void ip_init(void)
 {
     fileBuf = 0;
     fileLen = 0;
     sampleBuf = 0;
     sampleBufSize = 0;
+
+    jumpToTime = -1;
+    seek_mutex = g_mutex_new();
+    seek_cond = g_cond_new();
     
     fc_ip_load_config();
 }
 
-static gint ip_is_valid_file_vfs(gchar *fileName, VFSFile *fd)
+void ip_cleanup(void)
+{
+    g_cond_free(seek_cond);
+    g_mutex_free(seek_mutex);
+}
+
+gint ip_is_valid_file_vfs(const gchar *fileName, VFSFile *fd)
 {
     ubyte magicBuf[5];
     if ( 5 != aud_vfs_fread(magicBuf,1,5,fd) ) {
@@ -254,7 +166,7 @@ static gint ip_is_valid_file_vfs(gchar *fileName, VFSFile *fd)
     return ((isSMOD|isFC14) ? 1 : 0);
 }
 
-static void ip_play_file(InputPlayback *playback)
+void ip_play_file(InputPlayback *playback)
 {
     playback->playing = false;
     jumpToTime = -1;
@@ -352,77 +264,88 @@ static void ip_play_file(InputPlayback *playback)
         while ( !FC_songEnd );
         FC_init(fileBuf,fileLen,0,0);
         mixerInit(myFormat.freq,myFormat.bits,myFormat.channels,myFormat.zeroSample);
-    
+
+        Tuple *t = aud_tuple_new_from_filename( playback->filename );
+        aud_tuple_associate_int(t, FIELD_LENGTH, NULL, msecSongLen);
+        aud_tuple_associate_string(t, FIELD_QUALITY, NULL, "sequenced");
+        playback->set_tuple( playback, t );
+
         gint bitsPerSec = myFormat.freq * myFormat.channels * myFormat.bits;
-        gchar* title;
-        gchar* pathSepPos = strrchr( playback->filename, '/' );
-        if ( pathSepPos!=0 && pathSepPos[1]!=0 )  // found file name
-            title = pathSepPos+1;
-        else
-            title = playback->filename;
-        playback->set_params( playback, title, msecSongLen, bitsPerSec, myFormat.freq, myFormat.channels );
-        int usecPerBuf = (sampleBufSize * 1000000) / (myFormat.freq * myFormat.channels * (myFormat.bits/8));
-        sleepVal = usecPerBuf;
+        playback->set_params( playback, NULL, 0, bitsPerSec, myFormat.freq, myFormat.channels );
         
         playback->playing = true;
         
         decode_thread = g_thread_self();
         playback->set_pb_ready(playback);
-        play_loop(playback);
-    }
-    else
-    {
-        deleteSampleBuf();
-        deleteFileBuf();
+
+        while ( playback->playing )
+        {
+            mixerFillBuffer(sampleBuf,sampleBufSize);
+            if ( playback->playing && jumpToTime<0 )
+                playback->pass_audio(playback,myFormat.xmmsAFormat,myFormat.channels,sampleBufSize,sampleBuf,NULL);
+            if ( FC_songEnd && jumpToTime<0 )
+            {
+                playback->eof = TRUE;
+                playback->playing = false;
+            }
+
+            g_mutex_lock(seek_mutex);
+            if ( jumpToTime != -1 )
+            {
+                FC_init(fileBuf,fileLen,0,0);
+                gint j = jumpToTime;
+                while (j > 0)
+                {
+                    FC_play();
+                    j -= 20;
+                };
+                playback->output->flush(jumpToTime);
+                jumpToTime = -1;
+                g_cond_signal(seek_cond);
+            }
+            g_mutex_unlock(seek_mutex);
+        }
+        playback->playing = false;
+        playback->output->close_audio();
     }
 }
     
-static void ip_stop(InputPlayback *playback)
+void ip_stop(InputPlayback *playback)
 {
-    if ( fileBuf!=0 && playback->playing )
-    {
-        playback->playing = false;
-        g_thread_join(decode_thread);
-        playback->output->close_audio();
-        
-        deleteSampleBuf();
-        deleteFileBuf();
-    }
+    playback->playing = false;
+    deleteSampleBuf();
+    deleteFileBuf();
 }
 
-static void ip_pause(InputPlayback *playback, gshort p)
+void ip_pause(InputPlayback *playback, gshort p)
 {
     playback->output->pause(p);
 }
 
-static void ip_seek(InputPlayback *playback, gint secs)
+void ip_mseek(InputPlayback *playback, gulong msec)
 {
-    jumpToTime = secs * 1000;
-    
-    while (jumpToTime != -1)
-        g_usleep(10000);
+    g_mutex_lock(seek_mutex);
+    jumpToTime = msec;
+    g_cond_wait(seek_cond, seek_mutex);
+    g_mutex_unlock(seek_mutex);
 }
 
-static gint ip_get_time(InputPlayback *playback)
+void ip_seek(InputPlayback *playback, gint secs)
 {
-  if ( playback->playing && FC_songEnd && !playback->output->buffer_playing() )
-      return -1;  // stop and next file
-  else if ( playback->playing )
-      return playback->output->output_time();
-  else
-      return -1;
+    gulong msec = secs * 1000;
+    ip_mseek(playback, msec);
 }
 
-static void ip_get_song_info(gchar *fileName, gchar **title, gint *length)
+Tuple* ip_get_song_tuple(const gchar *filename)
 {
-    gchar* songTitle;
-    gchar* pathSepPos = strrchr( fileName, '/' );
-    if ( pathSepPos!=0 && pathSepPos[1]!=0 )  // found file name
-        songTitle = pathSepPos+1;
-    else
-        songTitle = fileName;
-    *title = g_strdup( songTitle );
-    *length = -1;
+    Tuple *t = aud_tuple_new_from_filename(filename);
+
+    // delay length detection to start of playback
+    aud_tuple_associate_int(t, FIELD_LENGTH, NULL, 0);
+    aud_tuple_associate_string(t, FIELD_QUALITY, NULL, "sequenced");
+    //aud_tuple_associate_string(ti, FIELD_TITLE, NULL, tmp);
+
+    return t;
 }
 
 }  // extern "C"

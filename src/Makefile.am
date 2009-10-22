@@ -11,12 +11,14 @@ about.c \
 about.h \
 configure.c \
 configure.h \
+Main.cpp \
+plugin.c \
+ \
 FC.cpp \
 FC_Defs.h \
 FC.h \
 LamePaula.cpp \
 LamePaula.h \
-Main.cpp \
 MyEndian.h \
 MyTypes.h \
 SmartPtr.h
