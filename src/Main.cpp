@@ -61,8 +61,6 @@ extern "C"
 #include "about.h"
 #include "configure.h"
 
-static GThread *decode_thread;
-
 static const udword extraFileBufLen = 8+1;  // see FC.cpp
 
 static ubyte* fileBuf = 0;
@@ -274,8 +272,6 @@ void ip_play_file(InputPlayback *playback)
         playback->set_params( playback, NULL, 0, bitsPerSec, myFormat.freq, myFormat.channels );
         
         playback->playing = true;
-        
-        decode_thread = g_thread_self();
         playback->set_pb_ready(playback);
 
         while ( playback->playing )
