@@ -1,3 +1,7 @@
+2009-10-24    Michael Schwendt <mschwendt@users.sf.net>
+
+	* src/Main.cpp: initially return -1 songtime (= unknown time)
+
 2009-10-22    Michael Schwendt <mschwendt@users.sf.net>
 
 	* src/Main.cpp: port to Audacious 2.2 InputPlugin API

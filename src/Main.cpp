@@ -337,7 +337,7 @@ Tuple* ip_get_song_tuple(const gchar *filename)
     Tuple *t = aud_tuple_new_from_filename(filename);
 
     // delay length detection to start of playback
-    aud_tuple_associate_int(t, FIELD_LENGTH, NULL, 0);
+    aud_tuple_associate_int(t, FIELD_LENGTH, NULL, -1);
     aud_tuple_associate_string(t, FIELD_QUALITY, NULL, "sequenced");
     //aud_tuple_associate_string(ti, FIELD_TITLE, NULL, tmp);
 
