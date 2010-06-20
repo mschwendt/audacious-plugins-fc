@@ -182,7 +182,7 @@ void ip_play_file(InputPlayback *playback) {
         while ( playback->playing ) {
             fc14dec_buffer_fill(decoder,sampleBuf,sampleBufSize);
             if ( playback->playing && jumpToTime<0 ) {
-#ifdef __AUDACIOUS_PLUGIN_API__ >= 13
+#if __AUDACIOUS_PLUGIN_API__ >= 13
                 playback->output->write_audio(sampleBuf,sampleBufSize);
 #else
                 playback->pass_audio(playback,myFormat.xmmsAFormat,myFormat.channels,sampleBufSize,sampleBuf,NULL);
