@@ -1,5 +1,6 @@
 2010-06-20    Michael Schwendt <mschwendt@users.sf.net>
 
+	* src/configure.c: remove 11025 Hz, it's too low
 	* src, src/Main.cpp: remove C++ files and decoder backend
 	* src/main.c: copy from Main.cpp, turn into C, add conditional
 	  support for Audacious 2.4, use libfc14audiodecoder API
