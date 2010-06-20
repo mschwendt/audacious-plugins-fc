@@ -1,5 +1,5 @@
 #include <audacious/configdb.h>
-#include <audacious/util.h>
+#include <audacious/plugin.h>
 #include <gtk/gtk.h>
 
 #include "configure.h"

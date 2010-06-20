@@ -1,78 +1,28 @@
 AC_INIT
-AC_CONFIG_SRCDIR([src/FC.cpp])
-AM_INIT_AUTOMAKE(audacious-plugin-fc, 0.4)
-AC_CONFIG_HEADERS([src/Config.h])
+AC_CONFIG_SRCDIR([src/plugin.c])
+AM_INIT_AUTOMAKE(audacious-plugin-fc, 0.5)
+AM_DISABLE_STATIC
+AM_PROG_LIBTOOL
+AC_CONFIG_HEADERS([src/config.h])
+AC_CONFIG_MACRO_DIR([m4])
 
-AC_CANONICAL_HOST
-dnl AC_PREFIX_DEFAULT(/usr)
-AC_EXEEXT()
+dnl AC_CANONICAL_HOST
+dnl AC_C_BIGENDIAN
 
 AC_PROG_CC
 AC_LANG([C])
-
-AC_C_BIGENDIAN
-dnl echo $ac_cv_c_bigendian
-dnl if ! test "$ac_cv_c_bigendian" = yes; then
-dnl  AC_DEFINE(WORDS_LITTLEENDIAN)
-dnl fi
-
-AC_CHECK_SIZEOF(char)
-AC_CHECK_SIZEOF(short int)
-AC_CHECK_SIZEOF(int)
-AC_CHECK_SIZEOF(long int)
-
-AC_HEADER_STDC
-
-PKG_CHECK_MODULES(AUDACIOUS, audacious >= 2.2)
-if test "x$AUDACIOUS_LIBS" != "x"; then
-   CFLAGS="$CFLAGS $AUDACIOUS_CFLAGS"
-   CXXFLAGS="$CXXFLAGS $AUDACIOUS_CFLAGS"
-   LIBS="$LIBS $AUDACIOUS_LIBS"
-   AC_MSG_RESULT(yes)
-else
-   AC_MSG_RESULT(no)
-fi
-
-AC_PATH_PROG(CAT,cat,no)
-if test "$CAT" = no; then
-    AC_MSG_ERROR(["cat" not found!]);
-fi
-
-AC_PATH_PROG(CP,cp,no)
-if test "$CP" = no; then
-    AC_MSG_ERROR(["cp" not found!]);
-fi
-
 AC_PATH_PROG(RM,rm,rm)
 
-AC_PROG_CXX
-AC_LANG([C++])
+dnl AC_HEADER_STDC
 
-AM_DISABLE_STATIC
-AM_PROG_LIBTOOL
-
-FC_CHECK_BOOL
-FC_CHECK_IOS_BINARY
-FC_CHECK_NOTHROW
-
-AC_CHECK_HEADERS(cstring string.h fstream fstream.h)
-fc_new_cpp_headers="yes"
-if test "$ac_cv_header_cstring" = no ||
-   test "$ac_cv_header_fstream" = no; then
-	AC_DEFINE([FC_HAVE_OLD_CPP_HEADERS], 1, 
-        [Define only if old non-standard C++ headers are available.])
-    fc_new_cpp_headers="no"
-fi
-if test "$fc_new_cpp_headers" = no; then
-    if test "$ac_cv_header_cstring" = no ||
-       test "$ac_cv_header_fstream" = no; then
-        AC_MSG_ERROR(
-[Standard C++ library include files not found!]
-        );
-    fi
+AC_CHECK_HEADER(fc14audiodecoder.h,
+    [],[AC_MSG_ERROR([fc14audiodecoder.h not found])])
+AC_CHECK_LIB(fc14audiodecoder,fc14dec_new)
+if ! test "$ac_cv_lib_fc14audiodecoder_fc14dec_new" = yes; then
+    AC_MSG_ERROR([libfc14audiodecoder not found])
 fi
 
-AC_SUBST(CXXFLAGS)
+PKG_CHECK_MODULES(audacious, audacious >= 2.2)
 
 AC_CONFIG_FILES([Makefile src/Makefile audacious-plugin-fc.spec])
 AC_OUTPUT

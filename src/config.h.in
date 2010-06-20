@@ -1,35 +1,14 @@
-/* src/Config.h.in.  Generated from configure.in by autoheader.  */
-
-/* Define if building universal (internal helper macro) */
-#undef AC_APPLE_UNIVERSAL_BUILD
-
-/* Define if your compiler supports type ``bool''. If not, a user-defined
-   signed integral type will be used. */
-#undef FC_HAVE_BOOL
-
-/* Define if standard member ``ios::binary'' is available. */
-#undef FC_HAVE_IOS_BINARY
-
-/* Define if ``nothrow allocator'' is available. */
-#undef FC_HAVE_NOTHROW
-
-/* Define only if old non-standard C++ headers are available. */
-#undef FC_HAVE_OLD_CPP_HEADERS
-
-/* Define to 1 if you have the <cstring> header file. */
-#undef HAVE_CSTRING
+/* src/config.h.in.  Generated from configure.in by autoheader.  */
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 
-/* Define to 1 if you have the <fstream> header file. */
-#undef HAVE_FSTREAM
-
-/* Define to 1 if you have the <fstream.h> header file. */
-#undef HAVE_FSTREAM_H
-
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `fc14audiodecoder' library
+   (-lfc14audiodecoder). */
+#undef HAVE_LIBFC14AUDIODECODER
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
@@ -74,35 +53,14 @@
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
 
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
-
-/* The size of `char', as computed by sizeof. */
-#undef SIZEOF_CHAR
-
-/* The size of `int', as computed by sizeof. */
-#undef SIZEOF_INT
-
-/* The size of `long int', as computed by sizeof. */
-#undef SIZEOF_LONG_INT
-
-/* The size of `short int', as computed by sizeof. */
-#undef SIZEOF_SHORT_INT
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
 /* Version number of package */
 #undef VERSION
-
-/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
-   significant byte first (like Motorola and SPARC, unlike Intel). */
-#if defined AC_APPLE_UNIVERSAL_BUILD
-# if defined __BIG_ENDIAN__
-#  define WORDS_BIGENDIAN 1
-# endif
-#else
-# ifndef WORDS_BIGENDIAN
-#  undef WORDS_BIGENDIAN
-# endif
-#endif

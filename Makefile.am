@@ -1,9 +1,9 @@
 AUTOMAKE_OPTIONS = foreign
+ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = src
 
-EXTRA_DIST = audacious-plugin-fc.spec audacious-plugin-fc.spec.in
+EXTRA_DIST = m4
 
 dist-hook:
-		@RM@ -f $(distdir)/src/Config.h
-
+		@RM@ -f $(distdir)/src/config.h

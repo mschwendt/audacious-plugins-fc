@@ -1,3 +1,11 @@
+2010-06-20    Michael Schwendt <mschwendt@users.sf.net>
+
+	* src, src/Main.cpp: remove C++ files and decoder backend
+	* src/main.c: copy from Main.cpp, turn into C, add conditional
+	  support for Audacious 2.4, use libfc14audiodecoder API
+	* src/Config.h.in: rename to lower-case config.h.in
+	* audacious*.spec*: removed (don't want to maintain them here)
+
 2009-10-24    Michael Schwendt <mschwendt@users.sf.net>
 
 	* src/Main.cpp: initially return -1 songtime (= unknown time)

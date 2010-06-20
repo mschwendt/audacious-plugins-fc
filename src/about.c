@@ -1,5 +1,5 @@
 #include <gtk/gtk.h>
-#include "Config.h"
+#include "config.h"
 
 static GtkWidget *about_window = NULL;
 

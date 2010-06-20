@@ -1,24 +1,17 @@
-EXTRA_DIST = Config.h.in FC.README
+EXTRA_DIST = config.h.in
 
 pkglibdir = `${PKG_CONFIG} audacious --variable=input_plugin_dir`
 
-pkglib_LTLIBRARIES = libfc.la
+pkglib_LTLIBRARIES = fcdecoder.la
 
-libfc_la_LDFLAGS = -module -avoid-version
+fcdecoder_la_LDFLAGS = -module -avoid-version
+fcdecoder_la_CFLAGS = $(audacious_CFLAGS)
+fcdecoder_la_LIBADD = $(audacious_LIBS)
 
-libfc_la_SOURCES = \
+fcdecoder_la_SOURCES = \
 about.c \
 about.h \
 configure.c \
 configure.h \
-Main.cpp \
-plugin.c \
- \
-FC.cpp \
-FC_Defs.h \
-FC.h \
-LamePaula.cpp \
-LamePaula.h \
-MyEndian.h \
-MyTypes.h \
-SmartPtr.h
+main.c \
+plugin.c

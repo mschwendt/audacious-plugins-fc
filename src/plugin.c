@@ -16,11 +16,10 @@ Tuple* ip_get_song_tuple(const gchar *filename);
 
 InputPlugin iplugin =
 {
-    .description = "Future Composer Player",
+    .description = "Future Composer decoder",
     .init = ip_init,
     .about = fc_ip_about,
     .configure = fc_ip_configure,
-    .enabled = TRUE,
     .have_subtune = FALSE,
     .vfs_extensions = fc_fmts,
     .play_file = ip_play_file,
