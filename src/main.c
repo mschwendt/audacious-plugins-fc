@@ -173,8 +173,8 @@ void ip_play_file(InputPlayback *playback) {
         aud_tuple_associate_string(t, FIELD_QUALITY, NULL, "sequenced");
         playback->set_tuple( playback, t );
 
-        gint bitsPerSec = myFormat.freq * myFormat.channels * myFormat.bits;
-        playback->set_params( playback, NULL, 0, bitsPerSec, myFormat.freq, myFormat.channels );
+        /* bitrate => 4*1000 will be displayed as "4 CHANNELS" */
+        playback->set_params( playback, NULL, 0, 1000*4, myFormat.freq, myFormat.channels );
         
         playback->playing = TRUE;
         playback->set_pb_ready(playback);

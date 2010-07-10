@@ -1,3 +1,8 @@
+2010-07-10    Michael Schwendt <mschwendt@users.sf.net>
+
+	* src/main.c: make Audacious main window display "4 CHANNELS"
+	  instead of an ambiguous bitrate
+
 2010-06-20    Michael Schwendt <mschwendt@users.sf.net>
 
 	* src/configure.c: remove 11025 Hz, it's too low
