@@ -1,5 +1,6 @@
 2010-07-10    Michael Schwendt <mschwendt@users.sf.net>
 
+	* configure.in: endian check is needed
 	* src/main.c: make Audacious main window display "4 CHANNELS"
 	  instead of an ambiguous bitrate
 
