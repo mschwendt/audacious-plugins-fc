@@ -22,12 +22,16 @@
 #include <glib.h>
 #include <fc14audiodecoder.h>
 
+#if __AUDACIOUS_PLUGIN_API__ < 16
+#error "At least Audacious 2.4 beta1 is required."
+#endif
+
 #include "config.h"
 #include "configure.h"
 
 struct audioFormat
 {
-    AFormat xmmsAFormat;
+    gint xmmsAFormat;
     gint bits, freq, channels;
     gint zeroSample;
 };
@@ -54,7 +58,7 @@ gint ip_is_valid_file_vfs(const gchar *fileName, VFSFile *fd) {
     unsigned char magicBuf[5];
     int ret;
 
-    if ( 5 != aud_vfs_fread(magicBuf,1,5,fd) ) {
+    if ( 5 != vfs_fread(magicBuf,1,5,fd) ) {
         return 1;
     }
     dec = fc14dec_new();
@@ -79,30 +83,30 @@ void ip_play_file(InputPlayback *playback) {
     jumpToTime = -1;
     decoder = fc14dec_new();
 
-    fd = aud_vfs_fopen(playback->filename,"rb");
+    fd = vfs_fopen(playback->filename,"rb");
     if (!fd) {
         goto PLAY_FAILURE_1;
     }
-    if ( aud_vfs_fseek(fd,0,SEEK_END)!=0 ) {
-        aud_vfs_fclose(fd);
+    if ( vfs_fseek(fd,0,SEEK_END)!=0 ) {
+        vfs_fclose(fd);
         goto PLAY_FAILURE_1;
     }
-    fileLen = aud_vfs_ftell(fd);
-    if ( aud_vfs_fseek(fd,0,SEEK_SET)!=0 ) {
-        aud_vfs_fclose(fd);
+    fileLen = vfs_ftell(fd);
+    if ( vfs_fseek(fd,0,SEEK_SET)!=0 ) {
+        vfs_fclose(fd);
         goto PLAY_FAILURE_1;
     }
     fileBuf = g_malloc(fileLen);
     if ( !fileBuf ) {
-        aud_vfs_fclose(fd);
+        vfs_fclose(fd);
         goto PLAY_FAILURE_1;
     }
-    if ( fileLen != aud_vfs_fread((char*)fileBuf,1,fileLen,fd) ) {
-        aud_vfs_fclose(fd);
+    if ( fileLen != vfs_fread((char*)fileBuf,1,fileLen,fd) ) {
+        vfs_fclose(fd);
         g_free(fileBuf);
         goto PLAY_FAILURE_1;
     }
-    aud_vfs_fclose(fd);
+    vfs_fclose(fd);
     haveModule = fc14dec_init(decoder,fileBuf,fileLen);
     g_free(fileBuf);
     if ( !haveModule ) {
@@ -168,9 +172,9 @@ void ip_play_file(InputPlayback *playback) {
     if ( haveSampleBuf && haveModule ) {
         int msecSongLen = fc14dec_duration(decoder);
 
-        Tuple *t = aud_tuple_new_from_filename( playback->filename );
-        aud_tuple_associate_int(t, FIELD_LENGTH, NULL, msecSongLen);
-        aud_tuple_associate_string(t, FIELD_QUALITY, NULL, "sequenced");
+        Tuple *t = tuple_new_from_filename( playback->filename );
+        tuple_associate_int(t, FIELD_LENGTH, NULL, msecSongLen);
+        tuple_associate_string(t, FIELD_QUALITY, NULL, "sequenced");
         playback->set_tuple( playback, t );
 
         /* bitrate => 4*1000 will be displayed as "4 CHANNELS" */
@@ -182,11 +186,7 @@ void ip_play_file(InputPlayback *playback) {
         while ( playback->playing ) {
             fc14dec_buffer_fill(decoder,sampleBuf,sampleBufSize);
             if ( playback->playing && jumpToTime<0 ) {
-#if __AUDACIOUS_PLUGIN_API__ >= 13
                 playback->output->write_audio(sampleBuf,sampleBufSize);
-#else
-                playback->pass_audio(playback,myFormat.xmmsAFormat,myFormat.channels,sampleBufSize,sampleBuf,NULL);
-#endif
             }
             if ( fc14dec_song_end(decoder) && jumpToTime<0 ) {
                 playback->eof = TRUE;
@@ -233,11 +233,11 @@ void ip_seek(InputPlayback *playback, gint secs) {
 }
 
 Tuple* ip_get_song_tuple(const gchar *filename) {
-    Tuple *t = aud_tuple_new_from_filename(filename);
+    Tuple *t = tuple_new_from_filename(filename);
 
     /* delay length detection to start of playback */
-    aud_tuple_associate_int(t, FIELD_LENGTH, NULL, -1);
-    aud_tuple_associate_string(t, FIELD_QUALITY, NULL, "sequenced");
+    tuple_associate_int(t, FIELD_LENGTH, NULL, -1);
+    tuple_associate_string(t, FIELD_QUALITY, NULL, "sequenced");
     /* aud_tuple_associate_string(ti, FIELD_TITLE, NULL, tmp); */
 
     return t;

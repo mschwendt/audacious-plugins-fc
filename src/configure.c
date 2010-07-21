@@ -28,7 +28,7 @@ static const gint FREQ_SAMPLE_22 = 22050;
 
 void fc_ip_load_config()
 {
-    ConfigDb *cfg;
+    mcs_handle_t *cfg;
 
     fc_myConfig.frequency = FREQ_SAMPLE_44;
     fc_myConfig.precision = 8;
@@ -197,7 +197,7 @@ void fc_ip_configure()
 
 static void config_ok(GtkWidget * widget, gpointer data)
 {
-	ConfigDb *cfg;
+    mcs_handle_t *cfg;
 
 	if (GTK_TOGGLE_BUTTON(Bits16)->active)
 		fc_myConfig.precision = 16;
