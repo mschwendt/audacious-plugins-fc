@@ -1,3 +1,10 @@
+2010-07-23    Michael Schwendt <mschwendt@users.sf.net>
+
+	* src/plugin.c: use probe_for_tuple instead of get_song_tuple,
+	  replace deprecated play_file, drop deprecated seek
+	* src/main.c: replace deprecated play_file with play,
+	  improve stop/pause/mseek, add probe_for_tuple
+
 2010-07-21    Michael Schwendt <mschwendt@users.sf.net>
 
 	* src/main.c, src/configure.in: port to Audacious 2.4 beta1 API

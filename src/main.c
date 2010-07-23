@@ -67,11 +67,11 @@ gint ip_is_valid_file_vfs(const gchar *fileName, VFSFile *fd) {
     return ret;
 }
 
-void ip_play_file(InputPlayback *playback) {
+gboolean ip_play(InputPlayback *playback, const gchar *filename, VFSFile *fd,
+                 gint start_time, gint stop_time, gboolean pause) {
     void *decoder = NULL;
     gpointer sampleBuf = NULL;
     size_t sampleBufSize;
-    VFSFile *fd;
     gpointer fileBuf = NULL;
     size_t fileLen;
     gboolean haveModule = FALSE;
@@ -79,38 +79,34 @@ void ip_play_file(InputPlayback *playback) {
     gboolean haveSampleBuf = FALSE;
     struct audioFormat myFormat;
 
-    playback->playing = FALSE;
-    jumpToTime = -1;
-    decoder = fc14dec_new();
-
-    fd = vfs_fopen(playback->filename,"rb");
-    if (!fd) {
-        goto PLAY_FAILURE_1;
+    if (fd == NULL) {
+        return FALSE;
     }
+
+    playback->playing = FALSE;
+    jumpToTime = (start_time > 0) ? start_time : -1;
+
     if ( vfs_fseek(fd,0,SEEK_END)!=0 ) {
-        vfs_fclose(fd);
-        goto PLAY_FAILURE_1;
+        return FALSE;
     }
     fileLen = vfs_ftell(fd);
     if ( vfs_fseek(fd,0,SEEK_SET)!=0 ) {
-        vfs_fclose(fd);
-        goto PLAY_FAILURE_1;
+        return FALSE;
     }
     fileBuf = g_malloc(fileLen);
     if ( !fileBuf ) {
-        vfs_fclose(fd);
-        goto PLAY_FAILURE_1;
+        return FALSE;
     }
     if ( fileLen != vfs_fread((char*)fileBuf,1,fileLen,fd) ) {
-        vfs_fclose(fd);
         g_free(fileBuf);
-        goto PLAY_FAILURE_1;
+        return FALSE;
     }
-    vfs_fclose(fd);
+    decoder = fc14dec_new();
     haveModule = fc14dec_init(decoder,fileBuf,fileLen);
     g_free(fileBuf);
     if ( !haveModule ) {
-        goto PLAY_FAILURE_1;
+        fc14dec_delete(decoder);
+        return FALSE;
     }
 
     myFormat.freq = fc_myConfig.frequency;
@@ -163,6 +159,9 @@ void ip_play_file(InputPlayback *playback) {
         while (formatList[++i].bits != 0);
     }
     if ( audioDriverOK ) {
+        if (pause) {
+            playback->output->pause(TRUE);
+        }
         sampleBufSize = 512*(myFormat.bits/8)*myFormat.channels;
         sampleBuf = g_malloc(sampleBufSize);
         haveSampleBuf = (sampleBuf != NULL);
@@ -184,15 +183,9 @@ void ip_play_file(InputPlayback *playback) {
         playback->set_pb_ready(playback);
 
         while ( playback->playing ) {
-            fc14dec_buffer_fill(decoder,sampleBuf,sampleBufSize);
-            if ( playback->playing && jumpToTime<0 ) {
-                playback->output->write_audio(sampleBuf,sampleBufSize);
+            if (stop_time >= 0 && playback->output->written_time () >= stop_time) {
+                goto DRAIN;
             }
-            if ( fc14dec_song_end(decoder) && jumpToTime<0 ) {
-                playback->eof = TRUE;
-                playback->playing = FALSE;
-            }
-
             g_mutex_lock(seek_mutex);
             if ( jumpToTime != -1 ) {
                 fc14dec_seek(decoder,jumpToTime);
@@ -201,44 +194,94 @@ void ip_play_file(InputPlayback *playback) {
                 g_cond_signal(seek_cond);
             }
             g_mutex_unlock(seek_mutex);
-        }
-        playback->playing = FALSE;
-        playback->output->close_audio();
-    }
 
- PLAY_FAILURE_2:
+            fc14dec_buffer_fill(decoder,sampleBuf,sampleBufSize);
+            if ( playback->playing && jumpToTime<0 ) {
+                playback->output->write_audio(sampleBuf,sampleBufSize);
+            }
+            if ( fc14dec_song_end(decoder) && jumpToTime<0 ) {
+                playback->eof = TRUE;
+                playback->playing = FALSE;
+ DRAIN:
+                while (playback->output->buffer_playing() && playback->playing) {
+                    g_usleep(20000);
+                }
+                break;
+            }
+        }
+    }
+ CLEANUP:
+    g_mutex_lock(seek_mutex);
+    playback->playing = FALSE;
+    g_cond_signal(seek_cond);  /* wake up any waiting request */
+    g_mutex_unlock(seek_mutex);
+
+    playback->output->close_audio();
     g_free(sampleBuf);
- PLAY_FAILURE_1:
     fc14dec_delete(decoder);
+    return FALSE;
 }
     
 void ip_stop(InputPlayback *playback) {
-    playback->playing = FALSE;
+    g_mutex_lock(seek_mutex);
+    if (playback->playing) {
+        playback->playing = FALSE;
+        playback->output->abort_write();
+        g_cond_signal(seek_cond);
+    }
+    g_mutex_unlock(seek_mutex);
 }
 
 void ip_pause(InputPlayback *playback, gshort p) {
-    playback->output->pause(p);
+    g_mutex_lock(seek_mutex);
+    if (playback->playing) {
+        playback->output->pause(p);
+    }
+    g_mutex_unlock(seek_mutex);
 }
 
 void ip_mseek(InputPlayback *playback, gulong msec) {
     g_mutex_lock(seek_mutex);
-    jumpToTime = msec;
-    g_cond_wait(seek_cond, seek_mutex);
+    if (playback->playing) {
+        jumpToTime = msec;
+        playback->output->abort_write();
+        g_cond_signal(seek_cond);
+        g_cond_wait(seek_cond, seek_mutex);
+    }
     g_mutex_unlock(seek_mutex);
 }
 
-void ip_seek(InputPlayback *playback, gint secs) {
-    gulong msec = secs * 1000;
-    ip_mseek(playback, msec);
-}
+Tuple *ip_probe_for_tuple(const gchar *filename, VFSFile *fd) {
+    void *decoder = NULL;
+    gpointer fileBuf = NULL;
+    size_t fileLen;
+    Tuple *t;
 
-Tuple* ip_get_song_tuple(const gchar *filename) {
-    Tuple *t = tuple_new_from_filename(filename);
-
-    /* delay length detection to start of playback */
-    tuple_associate_int(t, FIELD_LENGTH, NULL, -1);
-    tuple_associate_string(t, FIELD_QUALITY, NULL, "sequenced");
-    /* aud_tuple_associate_string(ti, FIELD_TITLE, NULL, tmp); */
-
+    if ( fd==NULL || vfs_fseek(fd,0,SEEK_END)!=0 ) {
+        return NULL;
+    }
+    fileLen = vfs_ftell(fd);
+    if ( vfs_fseek(fd,0,SEEK_SET)!=0 ) {
+        return NULL;
+    }
+    fileBuf = g_malloc(fileLen);
+    if ( !fileBuf ) {
+        return NULL;
+    }
+    if ( fileLen != vfs_fread((char*)fileBuf,1,fileLen,fd) ) {
+        g_free(fileBuf);
+        return NULL;
+    }
+    decoder = fc14dec_new();
+    if (fc14dec_init(decoder,fileBuf,fileLen)) {
+        t = tuple_new_from_filename(filename);
+        tuple_associate_int(t, FIELD_LENGTH, NULL, fc14dec_duration(decoder));
+        tuple_associate_string(t, FIELD_QUALITY, NULL, "sequenced");
+    }
+    else {
+        t = NULL;
+    }
+    g_free(fileBuf);
+    fc14dec_delete(decoder);
     return t;
 }

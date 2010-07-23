@@ -6,13 +6,14 @@ void ip_init(void);
 void ip_cleanup(void);
 void fc_ip_about(void);
 void fc_ip_configure(void);
-gint ip_is_valid_file_vfs(const gchar *fileName, VFSFile *fd);
-void ip_play_file(InputPlayback *playback);
+gint ip_is_valid_file_vfs(const gchar *filename, VFSFile *fd);
+gboolean ip_play(InputPlayback *playback, const gchar *filename, VFSFile *fd,
+                 gint start_time, gint stop_time, gboolean pause);
 void ip_stop(InputPlayback *playback);
 void ip_pause(InputPlayback *playback, gshort p);
 void ip_seek(InputPlayback *playback, gint secs);
 void ip_mseek(InputPlayback *playback, gulong msec);
-Tuple* ip_get_song_tuple(const gchar *filename);
+Tuple *ip_probe_for_tuple(const gchar *filename, VFSFile *fd);
 
 InputPlugin iplugin =
 {
@@ -22,13 +23,12 @@ InputPlugin iplugin =
     .configure = fc_ip_configure,
     .have_subtune = FALSE,
     .vfs_extensions = fc_fmts,
-    .play_file = ip_play_file,
+    .play = ip_play,
     .stop = ip_stop,
     .pause = ip_pause,
-    .seek = ip_seek,
     .mseek = ip_mseek,
     .cleanup = ip_cleanup,
-    .get_song_tuple = ip_get_song_tuple,
+    .probe_for_tuple = ip_probe_for_tuple,
     .is_our_file_from_vfs = ip_is_valid_file_vfs
 };
 
