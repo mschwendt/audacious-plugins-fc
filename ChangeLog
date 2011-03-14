@@ -1,3 +1,7 @@
+2011-02-02    Michael Schwendt <mschwendt@users.sf.net>
+
+	* src/main.c, src/plugin.c: port to Audacious 2.5 alpha1 API
+
 2010-07-23    Michael Schwendt <mschwendt@users.sf.net>
 
 	* src/plugin.c: use probe_for_tuple instead of get_song_tuple,
