@@ -1,8 +1,8 @@
 #include <audacious/plugin.h>
 
-gchar *fc_fmts[] = { "fc", "fc13", "fc14", NULL };
+const gchar* const fc_fmts[] = { "fc", "fc13", "fc14", NULL };
 
-void ip_init(void);
+gboolean ip_init(void);
 void ip_cleanup(void);
 void fc_ip_about(void);
 void fc_ip_configure(void);
@@ -10,9 +10,9 @@ gint ip_is_valid_file_vfs(const gchar *filename, VFSFile *fd);
 gboolean ip_play(InputPlayback *playback, const gchar *filename, VFSFile *fd,
                  gint start_time, gint stop_time, gboolean pause);
 void ip_stop(InputPlayback *playback);
-void ip_pause(InputPlayback *playback, gshort p);
+void ip_pause(InputPlayback *playback, gboolean p);
 void ip_seek(InputPlayback *playback, gint secs);
-void ip_mseek(InputPlayback *playback, gulong msec);
+void ip_mseek(InputPlayback *playback, gint msec);
 Tuple *ip_probe_for_tuple(const gchar *filename, VFSFile *fd);
 
 InputPlugin iplugin =

@@ -22,8 +22,8 @@
 #include <glib.h>
 #include <fc14audiodecoder.h>
 
-#if __AUDACIOUS_PLUGIN_API__ < 16
-#error "At least Audacious 2.4 beta1 is required."
+#if _AUD_PLUGIN_VERSION < 18
+#error "At least Audacious 2.5 alpha1 is required."
 #endif
 
 #include "config.h"
@@ -39,13 +39,16 @@ struct audioFormat
 static GMutex *seek_mutex;
 static GCond *seek_cond;
 static gint jumpToTime = -1;
+static gboolean stop_flag = FALSE;
 
-void ip_init(void) {
+gboolean ip_init(void) {
     jumpToTime = -1;
     seek_mutex = g_mutex_new();
     seek_cond = g_cond_new();
     
     fc_ip_load_config();
+
+    return TRUE;
 }
 
 void ip_cleanup(void) {
@@ -83,8 +86,8 @@ gboolean ip_play(InputPlayback *playback, const gchar *filename, VFSFile *fd,
         return FALSE;
     }
 
-    playback->playing = FALSE;
     jumpToTime = (start_time > 0) ? start_time : -1;
+    stop_flag = FALSE;
 
     if ( vfs_fseek(fd,0,SEEK_END)!=0 ) {
         return FALSE;
@@ -171,18 +174,17 @@ gboolean ip_play(InputPlayback *playback, const gchar *filename, VFSFile *fd,
     if ( haveSampleBuf && haveModule ) {
         int msecSongLen = fc14dec_duration(decoder);
 
-        Tuple *t = tuple_new_from_filename( playback->filename );
+        Tuple *t = tuple_new_from_filename( filename );
         tuple_associate_int(t, FIELD_LENGTH, NULL, msecSongLen);
         tuple_associate_string(t, FIELD_QUALITY, NULL, "sequenced");
         playback->set_tuple( playback, t );
 
         /* bitrate => 4*1000 will be displayed as "4 CHANNELS" */
-        playback->set_params( playback, NULL, 0, 1000*4, myFormat.freq, myFormat.channels );
+        playback->set_params( playback, 1000*4, myFormat.freq, myFormat.channels );
         
-        playback->playing = TRUE;
         playback->set_pb_ready(playback);
 
-        while ( playback->playing ) {
+        while ( !stop_flag ) {
             if (stop_time >= 0 && playback->output->written_time () >= stop_time) {
                 goto DRAIN;
             }
@@ -196,23 +198,21 @@ gboolean ip_play(InputPlayback *playback, const gchar *filename, VFSFile *fd,
             g_mutex_unlock(seek_mutex);
 
             fc14dec_buffer_fill(decoder,sampleBuf,sampleBufSize);
-            if ( playback->playing && jumpToTime<0 ) {
+            if ( !stop_flag && jumpToTime<0 ) {
                 playback->output->write_audio(sampleBuf,sampleBufSize);
             }
             if ( fc14dec_song_end(decoder) && jumpToTime<0 ) {
-                playback->eof = TRUE;
-                playback->playing = FALSE;
+                stop_flag = TRUE;
  DRAIN:
-                while (playback->output->buffer_playing() && playback->playing) {
+                while ( !stop_flag && playback->output->buffer_playing() ) {
                     g_usleep(20000);
                 }
                 break;
             }
         }
     }
- CLEANUP:
     g_mutex_lock(seek_mutex);
-    playback->playing = FALSE;
+    stop_flag = TRUE;
     g_cond_signal(seek_cond);  /* wake up any waiting request */
     g_mutex_unlock(seek_mutex);
 
@@ -224,25 +224,25 @@ gboolean ip_play(InputPlayback *playback, const gchar *filename, VFSFile *fd,
     
 void ip_stop(InputPlayback *playback) {
     g_mutex_lock(seek_mutex);
-    if (playback->playing) {
-        playback->playing = FALSE;
+    if (!stop_flag) {
+        stop_flag = TRUE;
         playback->output->abort_write();
         g_cond_signal(seek_cond);
     }
     g_mutex_unlock(seek_mutex);
 }
 
-void ip_pause(InputPlayback *playback, gshort p) {
+void ip_pause(InputPlayback *playback, gboolean p) {
     g_mutex_lock(seek_mutex);
-    if (playback->playing) {
+    if (!stop_flag) {
         playback->output->pause(p);
     }
     g_mutex_unlock(seek_mutex);
 }
 
-void ip_mseek(InputPlayback *playback, gulong msec) {
+void ip_mseek(InputPlayback *playback, gint msec) {
     g_mutex_lock(seek_mutex);
-    if (playback->playing) {
+    if (!stop_flag) {
         jumpToTime = msec;
         playback->output->abort_write();
         g_cond_signal(seek_cond);
