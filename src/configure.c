@@ -68,122 +68,122 @@ void fc_ip_configure()
     {
         fc_config_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
         gtk_window_set_type_hint(GTK_WINDOW(fc_config_window), GDK_WINDOW_TYPE_HINT_DIALOG);
-        gtk_object_set_data(GTK_OBJECT(fc_config_window), "fc_config_window", fc_config_window);
+        g_object_set_data(G_OBJECT(fc_config_window), "fc_config_window", fc_config_window);
         gtk_window_set_title(GTK_WINDOW(fc_config_window), "Future Composer player configuration");
-        gtk_window_set_policy(GTK_WINDOW(fc_config_window), FALSE, FALSE, FALSE);
+        gtk_window_set_resizable(GTK_WINDOW(fc_config_window), FALSE);
         gtk_window_set_position(GTK_WINDOW(fc_config_window), GTK_WIN_POS_MOUSE);
-        gtk_signal_connect(GTK_OBJECT(fc_config_window), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &fc_config_window);
-        gtk_container_border_width(GTK_CONTAINER(fc_config_window), 10);
+        g_signal_connect(G_OBJECT(fc_config_window), "destroy", G_CALLBACK(gtk_widget_destroyed), &fc_config_window);
+        gtk_container_set_border_width(GTK_CONTAINER(fc_config_window), 10);
 
 		vbox = gtk_vbox_new(FALSE, 10);
 		gtk_container_add(GTK_CONTAINER(fc_config_window), vbox);
 
 		notebook1 = gtk_notebook_new();
-		gtk_object_set_data(GTK_OBJECT(fc_config_window), "notebook1", notebook1);
+		g_object_set_data(G_OBJECT(fc_config_window), "notebook1", notebook1);
 		gtk_box_pack_start(GTK_BOX(vbox), notebook1, TRUE, TRUE, 0);
-		gtk_container_border_width(GTK_CONTAINER(notebook1), 3);
+		gtk_container_set_border_width(GTK_CONTAINER(notebook1), 3);
 
 		vbox1 = gtk_vbox_new(FALSE, 0);
-		gtk_object_set_data(GTK_OBJECT(fc_config_window), "vbox1", vbox1);
+		g_object_set_data(G_OBJECT(fc_config_window), "vbox1", vbox1);
 
 		hbox1 = gtk_hbox_new(FALSE, 0);
-		gtk_object_set_data(GTK_OBJECT(fc_config_window), "hbox1", hbox1);
+		g_object_set_data(G_OBJECT(fc_config_window), "hbox1", hbox1);
 		gtk_box_pack_start(GTK_BOX(vbox1), hbox1, TRUE, TRUE, 0);
 
 		bitsPerSample_Frame = gtk_frame_new("Bits per sample:");
-		gtk_object_set_data(GTK_OBJECT(fc_config_window), "bitsPerSample_Frame", bitsPerSample_Frame);
+		g_object_set_data(G_OBJECT(fc_config_window), "bitsPerSample_Frame", bitsPerSample_Frame);
 		gtk_box_pack_start(GTK_BOX(hbox1), bitsPerSample_Frame, TRUE, TRUE, 0);
 		gtk_container_set_border_width(GTK_CONTAINER(bitsPerSample_Frame), 5);
 
 		vbox4 = gtk_vbox_new(FALSE, 0);
-		gtk_object_set_data(GTK_OBJECT(fc_config_window), "vbox4", vbox4);
+		g_object_set_data(G_OBJECT(fc_config_window), "vbox4", vbox4);
 		gtk_container_add(GTK_CONTAINER(bitsPerSample_Frame), vbox4);
 
 		Bits16 = gtk_radio_button_new_with_label(bitsPerSample_group, "16 bit");
-		bitsPerSample_group = gtk_radio_button_group(GTK_RADIO_BUTTON(Bits16));
-		gtk_object_set_data(GTK_OBJECT(fc_config_window), "Bits16", Bits16);
+		bitsPerSample_group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(Bits16));
+		g_object_set_data(G_OBJECT(fc_config_window), "Bits16", Bits16);
 		gtk_box_pack_start(GTK_BOX(vbox4), Bits16, TRUE, TRUE, 0);
 		if (fc_myConfig.precision == 16)
 			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(Bits16), TRUE);
 
 		Bits8 = gtk_radio_button_new_with_label(bitsPerSample_group, "8 bit");
-		bitsPerSample_group = gtk_radio_button_group(GTK_RADIO_BUTTON(Bits8));
-		gtk_object_set_data(GTK_OBJECT(fc_config_window), "Bits8", Bits8);
+		bitsPerSample_group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(Bits8));
+		g_object_set_data(G_OBJECT(fc_config_window), "Bits8", Bits8);
 		gtk_box_pack_start(GTK_BOX(vbox4), Bits8, TRUE, TRUE, 0);
 		if (fc_myConfig.precision == 8)
 			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(Bits8), TRUE);
 
 		Channels_Frame = gtk_frame_new("Channels:");
-		gtk_object_set_data(GTK_OBJECT(fc_config_window), "Channels_Frame", Channels_Frame);
+		g_object_set_data(G_OBJECT(fc_config_window), "Channels_Frame", Channels_Frame);
 		gtk_box_pack_start(GTK_BOX(hbox1), Channels_Frame, TRUE, TRUE, 0);
 		gtk_container_set_border_width(GTK_CONTAINER(Channels_Frame), 5);
 
 		vbox5 = gtk_vbox_new(FALSE, 0);
-		gtk_object_set_data(GTK_OBJECT(fc_config_window), "vbox5", vbox5);
+		g_object_set_data(G_OBJECT(fc_config_window), "vbox5", vbox5);
 		gtk_container_add(GTK_CONTAINER(Channels_Frame), vbox5);
 
 		Stereo = gtk_radio_button_new_with_label(vbox5_group, "Stereo");
-		vbox5_group = gtk_radio_button_group(GTK_RADIO_BUTTON(Stereo));
-		gtk_object_set_data(GTK_OBJECT(fc_config_window), "Stereo", Stereo);
+		vbox5_group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(Stereo));
+		g_object_set_data(G_OBJECT(fc_config_window), "Stereo", Stereo);
 		gtk_box_pack_start(GTK_BOX(vbox5), Stereo, TRUE, TRUE, 0);
 		if (fc_myConfig.channels == 2)
 			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(Stereo), TRUE);
 
 		Mono = gtk_radio_button_new_with_label(vbox5_group, "Mono");
-		vbox5_group = gtk_radio_button_group(GTK_RADIO_BUTTON(Mono));
-		gtk_object_set_data(GTK_OBJECT(fc_config_window), "Mono", Mono);
+		vbox5_group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(Mono));
+		g_object_set_data(G_OBJECT(fc_config_window), "Mono", Mono);
 		gtk_box_pack_start(GTK_BOX(vbox5), Mono, TRUE, TRUE, 0);
 		if (fc_myConfig.channels == 1)
 			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(Mono), TRUE);
 
 		frequency_Frame = gtk_frame_new("Sample frequency:");
-		gtk_object_set_data(GTK_OBJECT(fc_config_window), "Frequency_Frame", frequency_Frame);
+		g_object_set_data(G_OBJECT(fc_config_window), "Frequency_Frame", frequency_Frame);
 		gtk_box_pack_start(GTK_BOX(vbox1), frequency_Frame, TRUE, TRUE, 0);
 		gtk_container_set_border_width(GTK_CONTAINER(frequency_Frame), 5);
 
 		vbox3 = gtk_vbox_new(FALSE, 0);
-		gtk_object_set_data(GTK_OBJECT(fc_config_window), "vbox3", vbox3);
+		g_object_set_data(G_OBJECT(fc_config_window), "vbox3", vbox3);
 		gtk_container_add(GTK_CONTAINER(frequency_Frame), vbox3);
 
         Sample_48 = gtk_radio_button_new_with_label(sample_group, "48000 Hz");
-		sample_group = gtk_radio_button_group(GTK_RADIO_BUTTON(Sample_48));
-		gtk_object_set_data(GTK_OBJECT(fc_config_window), "Sample_48", Sample_48);
+		sample_group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(Sample_48));
+		g_object_set_data(G_OBJECT(fc_config_window), "Sample_48", Sample_48);
 		gtk_box_pack_start(GTK_BOX(vbox3), Sample_48, TRUE, TRUE, 0);
 		if (fc_myConfig.frequency == FREQ_SAMPLE_48)
 			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(Sample_48), TRUE);
 
 		Sample_44 = gtk_radio_button_new_with_label(sample_group, "44100 Hz");
-		sample_group = gtk_radio_button_group(GTK_RADIO_BUTTON(Sample_44));
-		gtk_object_set_data(GTK_OBJECT(fc_config_window), "Sample_44", Sample_44);
+		sample_group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(Sample_44));
+		g_object_set_data(G_OBJECT(fc_config_window), "Sample_44", Sample_44);
 		gtk_box_pack_start(GTK_BOX(vbox3), Sample_44, TRUE, TRUE, 0);
 		if (fc_myConfig.frequency == FREQ_SAMPLE_44)
 			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(Sample_44), TRUE);
 
 		Sample_22 = gtk_radio_button_new_with_label(sample_group, "22050 Hz");
-		sample_group = gtk_radio_button_group(GTK_RADIO_BUTTON(Sample_22));
-		gtk_object_set_data(GTK_OBJECT(fc_config_window), "Sample_22", Sample_22);
+		sample_group = gtk_radio_button_get_group(GTK_RADIO_BUTTON(Sample_22));
+		g_object_set_data(G_OBJECT(fc_config_window), "Sample_22", Sample_22);
 		gtk_box_pack_start(GTK_BOX(vbox3), Sample_22, TRUE, TRUE, 0);
 		if (fc_myConfig.frequency == FREQ_SAMPLE_22)
 			gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(Sample_22), TRUE);
 
 		Quality_Label = gtk_label_new("Quality");
-		gtk_object_set_data(GTK_OBJECT(fc_config_window), "Quality_Label", Quality_Label);
+		g_object_set_data(G_OBJECT(fc_config_window), "Quality_Label", Quality_Label);
 		gtk_notebook_append_page(GTK_NOTEBOOK(notebook1), vbox1, Quality_Label);
 
 		bbox = gtk_hbutton_box_new();
 		gtk_button_box_set_layout(GTK_BUTTON_BOX(bbox), GTK_BUTTONBOX_END);
-		gtk_button_box_set_spacing(GTK_BUTTON_BOX(bbox), 5);
+		gtk_box_set_spacing(GTK_BOX(bbox), 5);
 		gtk_box_pack_start(GTK_BOX(vbox), bbox, FALSE, FALSE, 0);
 
 		ok = gtk_button_new_with_label("Ok");
-		gtk_signal_connect(GTK_OBJECT(ok), "clicked", GTK_SIGNAL_FUNC(config_ok), NULL);
-		GTK_WIDGET_SET_FLAGS(ok, GTK_CAN_DEFAULT);
+		g_signal_connect(G_OBJECT(ok), "clicked", G_CALLBACK(config_ok), NULL);
+        gtk_widget_set_can_default(ok, TRUE);
 		gtk_box_pack_start(GTK_BOX(bbox), ok, TRUE, TRUE, 0);
 		gtk_widget_grab_default(ok);
 
 		cancel = gtk_button_new_with_label("Cancel");
-		gtk_signal_connect_object(GTK_OBJECT(cancel), "clicked", GTK_SIGNAL_FUNC(gtk_widget_destroy), GTK_OBJECT(fc_config_window));
-		GTK_WIDGET_SET_FLAGS(cancel, GTK_CAN_DEFAULT);
+		g_signal_connect_object(G_OBJECT(cancel), "clicked", G_CALLBACK(gtk_widget_destroy), G_OBJECT(fc_config_window), G_CONNECT_AFTER);
+        gtk_widget_set_can_default(cancel, TRUE);
 		gtk_box_pack_start(GTK_BOX(bbox), cancel, TRUE, TRUE, 0);
 
 		gtk_widget_show_all(fc_config_window);
