@@ -182,7 +182,7 @@ void fc_ip_configure()
 		gtk_widget_grab_default(ok);
 
 		cancel = gtk_button_new_with_label("Cancel");
-		g_signal_connect_object(G_OBJECT(cancel), "clicked", G_CALLBACK(gtk_widget_destroy), G_OBJECT(fc_config_window), G_CONNECT_AFTER);
+		g_signal_connect_swapped(G_OBJECT(cancel), "clicked", G_CALLBACK(gtk_widget_destroy), G_OBJECT(fc_config_window));
         gtk_widget_set_can_default(cancel, TRUE);
 		gtk_box_pack_start(GTK_BOX(bbox), cancel, TRUE, TRUE, 0);
 

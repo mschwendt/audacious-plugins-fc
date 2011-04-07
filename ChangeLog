@@ -1,6 +1,6 @@
 2011-04-07    Michael Schwendt <mschwendt@users.sf.net>
 
-	* src/configure.c: replace deprecated GTK+ stuff
+	* src/about.c, src/configure.c: replace deprecated GTK+ stuff
 	* src/main.c: successful end of play() should return TRUE
 
 2011-02-02    Michael Schwendt <mschwendt@users.sf.net>
