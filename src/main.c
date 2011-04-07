@@ -219,7 +219,7 @@ gboolean ip_play(InputPlayback *playback, const gchar *filename, VFSFile *fd,
     playback->output->close_audio();
     g_free(sampleBuf);
     fc14dec_delete(decoder);
-    return FALSE;
+    return TRUE;
 }
     
 void ip_stop(InputPlayback *playback) {

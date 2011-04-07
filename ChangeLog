@@ -1,3 +1,7 @@
+2011-04-07    Michael Schwendt <mschwendt@users.sf.net>
+
+	* src/main.c: successful end of play() should return TRUE
+
 2011-02-02    Michael Schwendt <mschwendt@users.sf.net>
 
 	* src/main.c, src/plugin.c: port to Audacious 2.5 alpha1 API
