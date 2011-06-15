@@ -67,7 +67,7 @@ void fc_ip_load_config() {
 static void fc_ip_config_save() {
     mcs_handle_t *cfg;
 
-	if ((cfg = aud_cfg_db_open())) {
+    if ((cfg = aud_cfg_db_open())) {
         aud_cfg_db_set_int(cfg, configSection, "frequency", fc_myConfig.frequency);
         aud_cfg_db_set_int(cfg, configSection, "precision", fc_myConfig.precision);
         aud_cfg_db_set_int(cfg, configSection, "channels", fc_myConfig.channels);
@@ -76,6 +76,8 @@ static void fc_ip_config_save() {
 }
 
 static void configure_apply() {
+    memcpy(&fc_myConfig, &config, sizeof(FCpluginConfig));
+
     if (config.bits16) {
         fc_myConfig.precision = 16;
     }
