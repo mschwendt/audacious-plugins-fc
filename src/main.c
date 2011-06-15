@@ -22,8 +22,8 @@
 #include <glib.h>
 #include <fc14audiodecoder.h>
 
-#if _AUD_PLUGIN_VERSION < 18
-#error "At least Audacious 2.5 alpha1 is required."
+#if _AUD_PLUGIN_VERSION < 30
+#error "At least Audacious 3.0 alpha1 is required."
 #endif
 
 #include "config.h"
