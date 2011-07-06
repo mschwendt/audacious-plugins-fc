@@ -110,19 +110,19 @@ static void configure_init(void) {
 }
 
 static PreferencesWidget prefs_precision[] = {
-    {WIDGET_RADIO_BTN, "16", &config.bits16, NULL, NULL, FALSE},
-    {WIDGET_RADIO_BTN, "8", &config.bits8, NULL, NULL, FALSE},
+    {WIDGET_RADIO_BTN, "16", &config.bits16, NULL, NULL, FALSE, .cfg_type = VALUE_BOOLEAN},
+    {WIDGET_RADIO_BTN, "8", &config.bits8, NULL, NULL, FALSE, .cfg_type = VALUE_BOOLEAN},
 };
 
 static PreferencesWidget prefs_channels[] = {
-    {WIDGET_RADIO_BTN, "Stereo", &config.stereo, NULL, NULL, FALSE},
-    {WIDGET_RADIO_BTN, "Mono", &config.mono, NULL, NULL, FALSE},
+    {WIDGET_RADIO_BTN, "Stereo", &config.stereo, NULL, NULL, FALSE, .cfg_type = VALUE_BOOLEAN},
+    {WIDGET_RADIO_BTN, "Mono", &config.mono, NULL, NULL, FALSE, .cfg_type = VALUE_BOOLEAN},
 };
 
 static PreferencesWidget prefs_frequency[] = {
-    {WIDGET_RADIO_BTN, "48000", &config.freq48, NULL, NULL, FALSE},
-    {WIDGET_RADIO_BTN, "44100", &config.freq44, NULL, NULL, FALSE},
-    {WIDGET_RADIO_BTN, "22050", &config.freq22, NULL, NULL, FALSE},
+    {WIDGET_RADIO_BTN, "48000", &config.freq48, NULL, NULL, FALSE, .cfg_type = VALUE_BOOLEAN},
+    {WIDGET_RADIO_BTN, "44100", &config.freq44, NULL, NULL, FALSE, .cfg_type = VALUE_BOOLEAN},
+    {WIDGET_RADIO_BTN, "22050", &config.freq22, NULL, NULL, FALSE, .cfg_type = VALUE_BOOLEAN},
 };
 
 static PreferencesWidget prefs_top_row[] = {

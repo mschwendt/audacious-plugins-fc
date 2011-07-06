@@ -1,3 +1,7 @@
+2011-07-06    Michael Schwendt <mschwendt@users.sf.net>
+
+	* src/configure.c: add widget config types
+
 2011-06-15    Michael Schwendt <mschwendt@users.sf.net>
 
 	* use Audacious GUI API instead of native GTK+
