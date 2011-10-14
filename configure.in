@@ -22,7 +22,7 @@ if ! test "$ac_cv_lib_fc14audiodecoder_fc14dec_new" = yes; then
     AC_MSG_ERROR([libfc14audiodecoder not found])
 fi
 
-PKG_CHECK_MODULES(audacious, audacious >= 3.0)
+PKG_CHECK_MODULES(audacious, audacious >= 3.1)
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT

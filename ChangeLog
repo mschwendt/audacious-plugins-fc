@@ -1,3 +1,8 @@
+2011-10-14    Michael Schwendt <mschwendt@users.sf.net>
+
+	* src/configure.c: port to Audacious 3.1 beta1 API
+	* require at least Audacious 3.1
+
 2011-07-06    Michael Schwendt <mschwendt@users.sf.net>
 
 	* src/configure.c: add widget config types

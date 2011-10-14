@@ -1,4 +1,4 @@
-#include <audacious/configdb.h>
+#include <audacious/misc.h>
 #include <audacious/plugin.h>
 #include <audacious/preferences.h>
 #include <glib.h>
@@ -8,26 +8,25 @@
 FCpluginConfig fc_myConfig;
 FCpluginConfig config;
 
-static gchar configSection[] = "FutureComposer";
+static gchar const configSection[] = "FutureComposer";
 
 static const gint FREQ_SAMPLE_48 = 48000;
 static const gint FREQ_SAMPLE_44 = 44100;
 static const gint FREQ_SAMPLE_22 = 22050;
 
+static const gchar* const plugin_defaults[] = {
+    "frequency", "44100",
+    "precision", "8",
+    "channels", "1",
+    NULL
+};
+
 void fc_ip_load_config() {
-    mcs_handle_t *cfg;
+    aud_config_set_defaults(configSection,plugin_defaults);
 
-    fc_myConfig.frequency = FREQ_SAMPLE_44;
-    fc_myConfig.precision = 8;
-    fc_myConfig.channels = 1;
-    
-    if ((cfg = aud_cfg_db_open())) {
-        aud_cfg_db_get_int(cfg, configSection, "frequency", &fc_myConfig.frequency);
-        aud_cfg_db_get_int(cfg, configSection, "precision", &fc_myConfig.precision);
-        aud_cfg_db_get_int(cfg, configSection, "channels", &fc_myConfig.channels);
-
-        aud_cfg_db_close(cfg);
-    }
+    fc_myConfig.frequency = aud_get_int(configSection, "frequency");
+    fc_myConfig.precision = aud_get_int(configSection, "precision");
+    fc_myConfig.channels = aud_get_int(configSection, "channels");
 
     fc_myConfig.freq48 = fc_myConfig.freq44 = fc_myConfig.freq22 = FALSE;
     fc_myConfig.bits16 = fc_myConfig.bits8 = FALSE;
@@ -65,14 +64,9 @@ void fc_ip_load_config() {
 }
 
 static void fc_ip_config_save() {
-    mcs_handle_t *cfg;
-
-    if ((cfg = aud_cfg_db_open())) {
-        aud_cfg_db_set_int(cfg, configSection, "frequency", fc_myConfig.frequency);
-        aud_cfg_db_set_int(cfg, configSection, "precision", fc_myConfig.precision);
-        aud_cfg_db_set_int(cfg, configSection, "channels", fc_myConfig.channels);
-        aud_cfg_db_close(cfg);
-    }
+    aud_set_int(configSection, "frequency", fc_myConfig.frequency);
+    aud_set_int(configSection, "precision", fc_myConfig.precision);
+    aud_set_int(configSection, "channels", fc_myConfig.channels);
 }
 
 static void configure_apply() {
@@ -126,16 +120,16 @@ static PreferencesWidget prefs_frequency[] = {
 };
 
 static PreferencesWidget prefs_top_row[] = {
-    {WIDGET_BOX, "Frequency [Hz]:", NULL, NULL, NULL, FALSE,
+    {WIDGET_BOX, "Frequency [Hz]:", NULL, NULL, NULL, FALSE, VALUE_NULL, NULL, NULL,
      {.box = {prefs_frequency, G_N_ELEMENTS(prefs_frequency), FALSE, TRUE}}},
-    {WIDGET_BOX, "Precision [bits]:", NULL, NULL, NULL, FALSE,
+    {WIDGET_BOX, "Precision [bits]:", NULL, NULL, NULL, FALSE, VALUE_NULL, NULL, NULL,
      {.box = {prefs_precision, G_N_ELEMENTS(prefs_precision), FALSE, TRUE}}},
-    {WIDGET_BOX, "Channels:", NULL, NULL, NULL, FALSE,
+    {WIDGET_BOX, "Channels:", NULL, NULL, NULL, FALSE, VALUE_NULL, NULL, NULL,
      {.box = {prefs_channels, G_N_ELEMENTS(prefs_channels), FALSE, TRUE}}},
 };
 
 static PreferencesWidget prefs[] = {
-    {WIDGET_BOX, NULL, NULL, NULL, NULL, FALSE,
+    {WIDGET_BOX, NULL, NULL, NULL, NULL, FALSE, VALUE_NULL, NULL, NULL,
      {.box = {prefs_top_row, G_N_ELEMENTS(prefs_top_row), TRUE, FALSE}}},
 };
 
