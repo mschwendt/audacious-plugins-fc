@@ -67,8 +67,7 @@ am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 am__installdirs = "$(DESTDIR)$(pkglibdir)"
 LTLIBRARIES = $(pkglib_LTLIBRARIES)
-am__DEPENDENCIES_1 =
-fcdecoder_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
+fcdecoder_la_DEPENDENCIES =
 am_fcdecoder_la_OBJECTS = fcdecoder_la-about.lo \
 	fcdecoder_la-configure.lo fcdecoder_la-main.lo \
 	fcdecoder_la-plugin.lo
@@ -119,7 +118,11 @@ ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
+GLIB_CFLAGS = @GLIB_CFLAGS@
+GLIB_LIBS = @GLIB_LIBS@
 GREP = @GREP@
+GTK_CFLAGS = @GTK_CFLAGS@
+GTK_LIBS = @GTK_LIBS@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -172,8 +175,6 @@ am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
-audacious_CFLAGS = @audacious_CFLAGS@
-audacious_LIBS = @audacious_LIBS@
 bindir = @bindir@
 build = @build@
 build_alias = @build_alias@
@@ -217,7 +218,7 @@ top_srcdir = @top_srcdir@
 EXTRA_DIST = config.h.in
 pkglib_LTLIBRARIES = fcdecoder.la
 fcdecoder_la_LDFLAGS = -module -avoid-version
-fcdecoder_la_CFLAGS = $(audacious_CFLAGS)
+fcdecoder_la_CFLAGS = $(audacious_CFLAGS) $(GTK_CFLAGS) $(GLIB_CFLAGS)
 fcdecoder_la_LIBADD = $(audacious_LIBS)
 fcdecoder_la_SOURCES = \
 about.c \
