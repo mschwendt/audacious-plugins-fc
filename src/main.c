@@ -21,9 +21,10 @@
 #include <audacious/plugin.h>
 #include <glib.h>
 #include <fc14audiodecoder.h>
+#include <stdio.h>
 
-#if _AUD_PLUGIN_VERSION < 30
-#error "At least Audacious 3.0 alpha1 is required."
+#if _AUD_PLUGIN_VERSION < 37
+#error "At least Audacious 3.2-alpha1 is required."
 #endif
 
 #include "config.h"
@@ -175,8 +176,8 @@ gboolean ip_play(InputPlayback *playback, const gchar *filename, VFSFile *fd,
         int msecSongLen = fc14dec_duration(decoder);
 
         Tuple *t = tuple_new_from_filename( filename );
-        tuple_associate_int(t, FIELD_LENGTH, NULL, msecSongLen);
-        tuple_associate_string(t, FIELD_QUALITY, NULL, "sequenced");
+        tuple_set_int(t, FIELD_LENGTH, NULL, msecSongLen);
+        tuple_set_str(t, FIELD_QUALITY, NULL, "sequenced");
         playback->set_tuple( playback, t );
 
         /* bitrate => 4*1000 will be displayed as "4 CHANNELS" */
@@ -275,8 +276,8 @@ Tuple *ip_probe_for_tuple(const gchar *filename, VFSFile *fd) {
     decoder = fc14dec_new();
     if (fc14dec_init(decoder,fileBuf,fileLen)) {
         t = tuple_new_from_filename(filename);
-        tuple_associate_int(t, FIELD_LENGTH, NULL, fc14dec_duration(decoder));
-        tuple_associate_string(t, FIELD_QUALITY, NULL, "sequenced");
+        tuple_set_int(t, FIELD_LENGTH, NULL, fc14dec_duration(decoder));
+        tuple_set_str(t, FIELD_QUALITY, NULL, "sequenced");
     }
     else {
         t = NULL;

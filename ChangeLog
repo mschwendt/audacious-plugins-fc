@@ -1,3 +1,9 @@
+2012-01-02    Michael Schwendt <mschwendt@users.sf.net>
+
+	* configure.in: add pkg-config checks
+	* src/main.c, src/plugin.c: requires glib-2.0.pc gtk+-3.0.pc CFLAGS
+	* src/configure.c: require Audacious 3.2 beta1 API
+
 2011-10-14    Michael Schwendt <mschwendt@users.sf.net>
 
 	* src/configure.c: port to Audacious 3.1 beta1 API

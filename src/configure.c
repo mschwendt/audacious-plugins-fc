@@ -1,7 +1,7 @@
+#include <glib.h>
 #include <audacious/misc.h>
 #include <audacious/plugin.h>
 #include <audacious/preferences.h>
-#include <glib.h>
 
 #include "configure.h"
 

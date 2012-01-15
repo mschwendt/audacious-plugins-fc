@@ -1,3 +1,4 @@
+#include <glib.h>
 #include <audacious/plugin.h>
 
 const gchar* const fc_fmts[] = { "fc", "fc13", "fc14", NULL };
