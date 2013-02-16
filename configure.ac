@@ -22,8 +22,8 @@ if ! test "$ac_cv_lib_fc14audiodecoder_fc14dec_new" = yes; then
     AC_MSG_ERROR([libfc14audiodecoder not found])
 fi
 
-PKG_CHECK_MODULES([AUDACIOUS], [audacious >= 3.2], [],
-    AC_MSG_ERROR([Could not find Audacious >= 3.2 API pkgconfig file.]))
+PKG_CHECK_MODULES([AUDACIOUS], [audacious >= 3.3], [],
+    AC_MSG_ERROR([Could not find Audacious >= 3.3 API pkgconfig file.]))
 
 AC_MSG_CHECKING([for Audacious input plug-in directory])
 audfc_iplugin_dir=`$PKG_CONFIG --variable=input_plugin_dir audacious`
