@@ -22,7 +22,7 @@ AUD_INPUT_PLUGIN
     .name = "Future Composer decoder",
     .init = ip_init,
     .about = fc_ip_about,
-    .settings = &fc_ip_preferences,
+    .prefs = &fc_ip_preferences,
     .have_subtune = FALSE,
     .extensions = fc_fmts,
     .play = ip_play,

@@ -1,3 +1,8 @@
+2012-06-18    Michael Schwendt <mschwendt@users.sf.net>
+
+	* src/configure.c, src/main.c, src/plugin.c: port to
+	  Audacious 3.3-alpha1 plugin API (40)
+
 2012-01-02    Michael Schwendt <mschwendt@users.sf.net>
 
 	* configure.in: add pkg-config checks

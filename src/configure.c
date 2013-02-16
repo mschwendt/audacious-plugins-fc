@@ -134,11 +134,8 @@ static PreferencesWidget prefs[] = {
 };
 
 PluginPreferences fc_ip_preferences = {
-    .domain = "fc14audiodecoder",
-    .title = "Future Composer Decoder Configuration",
-    .prefs = prefs,
-    .n_prefs = G_N_ELEMENTS(prefs),
-    .type = PREFERENCES_WINDOW,
+    .widgets = prefs,
+    .n_widgets = G_N_ELEMENTS(prefs),
     .init = configure_init,
     .apply = configure_apply,
 };

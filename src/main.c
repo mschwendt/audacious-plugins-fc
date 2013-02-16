@@ -205,9 +205,6 @@ gboolean ip_play(InputPlayback *playback, const gchar *filename, VFSFile *fd,
             if ( fc14dec_song_end(decoder) && jumpToTime<0 ) {
                 stop_flag = TRUE;
  DRAIN:
-                while ( !stop_flag && playback->output->buffer_playing() ) {
-                    g_usleep(20000);
-                }
                 break;
             }
         }
@@ -217,7 +214,6 @@ gboolean ip_play(InputPlayback *playback, const gchar *filename, VFSFile *fd,
     g_cond_signal(seek_cond);  /* wake up any waiting request */
     g_mutex_unlock(seek_mutex);
 
-    playback->output->close_audio();
     g_free(sampleBuf);
     fc14dec_delete(decoder);
     return TRUE;
