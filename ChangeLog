@@ -1,3 +1,11 @@
+2013-02-16  Michael Schwendt  <mschwendt@users.sf.net>
+
+	* src/plugin.c: use .about_text instead of GTK+
+	* src/about.*: delete, obsolete
+	* src/Makefile.am: updates for dropping GTK+ usage
+	  and Audacious input plugin dir
+	* configure.ac: rename from configure.in and update
+
 2012-06-18    Michael Schwendt <mschwendt@users.sf.net>
 
 	* src/configure.c, src/main.c, src/plugin.c: port to

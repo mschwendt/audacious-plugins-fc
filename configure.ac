@@ -1,6 +1,6 @@
-AC_INIT
+AC_INIT([audacious-plugin-fc], [0.7])
 AC_CONFIG_SRCDIR([src/plugin.c])
-AM_INIT_AUTOMAKE(audacious-plugin-fc, 0.7)
+AM_INIT_AUTOMAKE([foreign])
 AM_DISABLE_STATIC
 AM_PROG_LIBTOOL
 AC_CONFIG_HEADERS([src/config.h])
@@ -22,12 +22,15 @@ if ! test "$ac_cv_lib_fc14audiodecoder_fc14dec_new" = yes; then
     AC_MSG_ERROR([libfc14audiodecoder not found])
 fi
 
-PKG_CHECK_EXISTS([Audacious 3.2], [audacious >= 3.2],
-    AC_MSG_ERROR([Could not find Audacious 3.2 API pkgconfig file.]))
+PKG_CHECK_MODULES([AUDACIOUS], [audacious >= 3.2], [],
+    AC_MSG_ERROR([Could not find Audacious >= 3.2 API pkgconfig file.]))
 
-PKG_CHECK_MODULES([GTK], [gtk+-3.0 >= 3.0.0], [], AC_MSG_ERROR([Could not find GTK+ >= 3.]))
-AC_SUBST([GTK_CFLAGS])
-AC_SUBST([GTK_LIBS])
+AC_MSG_CHECKING([for Audacious input plug-in directory])
+audfc_iplugin_dir=`$PKG_CONFIG --variable=input_plugin_dir audacious`
+test -n "$audfc_iplugin_dir" && AC_MSG_RESULT([$audfc_iplugin_dir])
+test "x$audfc_iplugin_dir" == "x" && AC_MSG_ERROR([check failed])
+AUDACIOUS_IPLUGIN_DIR="$audfc_iplugin_dir"
+AC_SUBST([AUDACIOUS_IPLUGIN_DIR])
 
 PKG_CHECK_MODULES([GLIB], [glib-2.0], [], AC_MSG_ERROR([Could not find GLib 2.]))
 AC_SUBST([GLIB_CFLAGS])
