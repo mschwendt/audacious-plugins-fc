@@ -19,12 +19,13 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <audacious/plugin.h>
+#include <audacious/input.h>
 #include <glib.h>
 #include <fc14audiodecoder.h>
 #include <stdio.h>
 
-#if _AUD_PLUGIN_VERSION < 37
-#error "At least Audacious 3.2-alpha1 is required."
+#if _AUD_PLUGIN_VERSION < 45
+#error "At least Audacious 3.5-devel is required."
 #endif
 
 #include "config.h"
@@ -37,24 +38,10 @@ struct audioFormat
     gint zeroSample;
 };
 
-static GMutex *seek_mutex;
-static GCond *seek_cond;
-static gint jumpToTime = -1;
-static gboolean stop_flag = FALSE;
-
 gboolean ip_init(void) {
-    jumpToTime = -1;
-    seek_mutex = g_mutex_new();
-    seek_cond = g_cond_new();
-    
     fc_ip_load_config();
 
     return TRUE;
-}
-
-void ip_cleanup(void) {
-    g_cond_free(seek_cond);
-    g_mutex_free(seek_mutex);
 }
 
 gint ip_is_valid_file_vfs(const gchar *fileName, VFSFile *fd) {
@@ -71,8 +58,7 @@ gint ip_is_valid_file_vfs(const gchar *fileName, VFSFile *fd) {
     return ret;
 }
 
-gboolean ip_play(InputPlayback *playback, const gchar *filename, VFSFile *fd,
-                 gint start_time, gint stop_time, gboolean pause) {
+gboolean ip_play(const gchar *filename, VFSFile *fd) {
     void *decoder = NULL;
     gpointer sampleBuf = NULL;
     size_t sampleBufSize;
@@ -86,9 +72,6 @@ gboolean ip_play(InputPlayback *playback, const gchar *filename, VFSFile *fd,
     if (fd == NULL) {
         return FALSE;
     }
-
-    jumpToTime = (start_time > 0) ? start_time : -1;
-    stop_flag = FALSE;
 
     if ( vfs_fseek(fd,0,SEEK_END)!=0 ) {
         return FALSE;
@@ -130,9 +113,9 @@ gboolean ip_play(InputPlayback *playback, const gchar *filename, VFSFile *fd,
         myFormat.zeroSample = 0x0000;
     }
     if (myFormat.freq>0 && myFormat.channels>0) {
-        audioDriverOK = (playback->output->open_audio(myFormat.xmmsAFormat,
+        audioDriverOK = aud_input_open_audio(myFormat.xmmsAFormat,
                                                       myFormat.freq,
-                                                      myFormat.channels) != 0);
+                                             myFormat.channels);
     }
     if ( !audioDriverOK ) {
         // Try some audio configurations regardless of whether the
@@ -152,9 +135,9 @@ gboolean ip_play(InputPlayback *playback, const gchar *filename, VFSFile *fd,
         int i = 0;
         do {
             myFormat = formatList[i];
-            if (playback->output->open_audio(myFormat.xmmsAFormat,
+            if (!aud_input_open_audio(myFormat.xmmsAFormat,
                                              myFormat.freq,
-                                             myFormat.channels) != 0)
+                                      myFormat.channels))
             {
                 audioDriverOK = TRUE;
                 break;
@@ -163,9 +146,6 @@ gboolean ip_play(InputPlayback *playback, const gchar *filename, VFSFile *fd,
         while (formatList[++i].bits != 0);
     }
     if ( audioDriverOK ) {
-        if (pause) {
-            playback->output->pause(TRUE);
-        }
         sampleBufSize = 512*(myFormat.bits/8)*myFormat.channels;
         sampleBuf = g_malloc(sampleBufSize);
         haveSampleBuf = (sampleBuf != NULL);
@@ -178,76 +158,31 @@ gboolean ip_play(InputPlayback *playback, const gchar *filename, VFSFile *fd,
         Tuple *t = tuple_new_from_filename( filename );
         tuple_set_int(t, FIELD_LENGTH, NULL, msecSongLen);
         tuple_set_str(t, FIELD_QUALITY, NULL, "sequenced");
-        playback->set_tuple( playback, t );
+        aud_input_set_tuple( t );
 
+        // TODO
         /* bitrate => 4*1000 will be displayed as "4 CHANNELS" */
-        playback->set_params( playback, 1000*4, myFormat.freq, myFormat.channels );
+        //        playback->set_params( playback, 1000*4, myFormat.freq, myFormat.channels );
         
-        playback->set_pb_ready(playback);
-
-        while ( !stop_flag ) {
-            if (stop_time >= 0 && playback->output->written_time () >= stop_time) {
-                goto DRAIN;
-            }
-            g_mutex_lock(seek_mutex);
+        while ( !aud_input_check_stop() ) {
+            int jumpToTime = aud_input_check_seek();
             if ( jumpToTime != -1 ) {
                 fc14dec_seek(decoder,jumpToTime);
-                playback->output->flush(jumpToTime);
-                jumpToTime = -1;
-                g_cond_signal(seek_cond);
             }
-            g_mutex_unlock(seek_mutex);
 
             fc14dec_buffer_fill(decoder,sampleBuf,sampleBufSize);
-            if ( !stop_flag && jumpToTime<0 ) {
-                playback->output->write_audio(sampleBuf,sampleBufSize);
-            }
-            if ( fc14dec_song_end(decoder) && jumpToTime<0 ) {
-                stop_flag = TRUE;
- DRAIN:
+            aud_input_write_audio(sampleBuf,sampleBufSize);
+            if ( fc14dec_song_end(decoder) ) {
                 break;
             }
         }
     }
-    g_mutex_lock(seek_mutex);
-    stop_flag = TRUE;
-    g_cond_signal(seek_cond);  /* wake up any waiting request */
-    g_mutex_unlock(seek_mutex);
 
     g_free(sampleBuf);
     fc14dec_delete(decoder);
     return TRUE;
 }
     
-void ip_stop(InputPlayback *playback) {
-    g_mutex_lock(seek_mutex);
-    if (!stop_flag) {
-        stop_flag = TRUE;
-        playback->output->abort_write();
-        g_cond_signal(seek_cond);
-    }
-    g_mutex_unlock(seek_mutex);
-}
-
-void ip_pause(InputPlayback *playback, gboolean p) {
-    g_mutex_lock(seek_mutex);
-    if (!stop_flag) {
-        playback->output->pause(p);
-    }
-    g_mutex_unlock(seek_mutex);
-}
-
-void ip_mseek(InputPlayback *playback, gint msec) {
-    g_mutex_lock(seek_mutex);
-    if (!stop_flag) {
-        jumpToTime = msec;
-        playback->output->abort_write();
-        g_cond_signal(seek_cond);
-        g_cond_wait(seek_cond, seek_mutex);
-    }
-    g_mutex_unlock(seek_mutex);
-}
-
 Tuple *ip_probe_for_tuple(const gchar *filename, VFSFile *fd) {
     void *decoder = NULL;
     gpointer fileBuf = NULL;

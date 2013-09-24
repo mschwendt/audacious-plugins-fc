@@ -22,14 +22,14 @@ if ! test "$ac_cv_lib_fc14audiodecoder_fc14dec_new" = yes; then
     AC_MSG_ERROR([libfc14audiodecoder not found])
 fi
 
-PKG_CHECK_MODULES([AUDACIOUS], [audacious >= 3.3], [],
-    AC_MSG_ERROR([Could not find Audacious >= 3.3 API pkgconfig file.]))
+PKG_CHECK_MODULES([AUDACIOUS], [audacious >= 3.5], [],
+    AC_MSG_ERROR([Could not find Audacious >= 3.5 API pkgconfig file.]))
 
-AC_MSG_CHECKING([for Audacious input plug-in directory])
-audfc_iplugin_dir=`$PKG_CONFIG --variable=input_plugin_dir audacious`
-test -n "$audfc_iplugin_dir" && AC_MSG_RESULT([$audfc_iplugin_dir])
-test "x$audfc_iplugin_dir" == "x" && AC_MSG_ERROR([check failed])
-AUDACIOUS_IPLUGIN_DIR="$audfc_iplugin_dir"
+AC_MSG_CHECKING([for Audacious plug-in directory])
+audfc_plugin_dir=`$PKG_CONFIG --variable=plugin_dir audacious`
+test -n "$audfc_plugin_dir" && AC_MSG_RESULT([$audfc_plugin_dir])
+test "x$audfc_plugin_dir" == "x" && AC_MSG_ERROR([check failed])
+AUDACIOUS_IPLUGIN_DIR="$audfc_plugin_dir/Input"
 AC_SUBST([AUDACIOUS_IPLUGIN_DIR])
 
 PKG_CHECK_MODULES([GLIB], [glib-2.0], [], AC_MSG_ERROR([Could not find GLib 2.]))
