@@ -156,8 +156,8 @@ gboolean ip_play(const gchar *filename, VFSFile *fd) {
         int msecSongLen = fc14dec_duration(decoder);
 
         Tuple *t = tuple_new_from_filename( filename );
-        tuple_set_int(t, FIELD_LENGTH, NULL, msecSongLen);
-        tuple_set_str(t, FIELD_QUALITY, NULL, "sequenced");
+        tuple_set_int(t, FIELD_LENGTH, msecSongLen);
+        tuple_set_str(t, FIELD_QUALITY, "sequenced");
         aud_input_set_tuple( t );
 
         // TODO
@@ -207,8 +207,8 @@ Tuple *ip_probe_for_tuple(const gchar *filename, VFSFile *fd) {
     decoder = fc14dec_new();
     if (fc14dec_init(decoder,fileBuf,fileLen)) {
         t = tuple_new_from_filename(filename);
-        tuple_set_int(t, FIELD_LENGTH, NULL, fc14dec_duration(decoder));
-        tuple_set_str(t, FIELD_QUALITY, NULL, "sequenced");
+        tuple_set_int(t, FIELD_LENGTH, fc14dec_duration(decoder));
+        tuple_set_str(t, FIELD_QUALITY, "sequenced");
     }
     else {
         t = NULL;
