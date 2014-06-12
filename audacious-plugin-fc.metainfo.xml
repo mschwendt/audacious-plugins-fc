@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2014 Michael Schwendt <mschwendt@users.sf.net> -->
+<component type="addon">
+<id>audacious-plugin-fc</id>
+<extends>audacious.desktop</extends>
+<name>Future Composer decoder</name>
+<summary>Input plugin for Future Composer files</summary>
+<url type="homepage">http://xmms-fc.sourceforge.net</url>
+<metadata_license>CC0-1.0</metadata_license>
+<project_license>GPL-2.0+</project_license>
+<updatecontact>mschwendt@users.sf.net</updatecontact>
+</component>
