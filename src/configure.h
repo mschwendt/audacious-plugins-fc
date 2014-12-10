@@ -1,17 +1,15 @@
 #ifndef CONFIGURE_H
 #define CONFIGURE_H
 
-#include <glib.h>
-
 typedef struct 
 {
-    gint frequency;
-    gint precision;
-    gint channels;
+    int frequency;
+    int precision;
+    int channels;
 
-    gboolean freq48, freq44, freq22;
-    gboolean bits16, bits8;
-    gboolean mono, stereo;
+    bool freq48, freq44, freq22;
+    bool bits16, bits8;
+    bool mono, stereo;
 } FCpluginConfig;
 
 extern void fc_ip_load_config(void);

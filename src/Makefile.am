@@ -9,7 +9,7 @@ fcdecoder_la_CFLAGS = $(AUDACIOUS_CFLAGS) $(GLIB_CFLAGS)
 fcdecoder_la_LIBADD = $(AUDACIOUS_LIBS)
 
 fcdecoder_la_SOURCES = \
-configure.c \
-configure.h \
-main.c \
-plugin.c
+audfc.cpp \
+audfc.h \
+configure.cpp \
+configure.h

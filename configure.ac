@@ -1,4 +1,4 @@
-AC_INIT([audacious-plugin-fc], [0.7.3.5])
+AC_INIT([audacious-plugin-fc], [0.7.3.6])
 AC_CONFIG_SRCDIR([src/plugin.c])
 AM_INIT_AUTOMAKE([foreign])
 AM_DISABLE_STATIC
@@ -9,9 +9,14 @@ AC_CONFIG_MACRO_DIR([m4])
 dnl AC_CANONICAL_HOST
 
 AC_PROG_CC
+AC_PROG_CXX
 AC_LANG([C])
 AC_C_BIGENDIAN
 AC_PATH_PROG(RM,rm,rm)
+
+CXXFLAGS="$CXXFLAGS -std=gnu++11 -fvisibility=hidden"
+EXPORT="__attribute__((visibility(\"default\")))"
+AC_DEFINE_UNQUOTED([EXPORT], [$EXPORT], [Define to compiler syntax for public symbols])
 
 dnl AC_HEADER_STDC
 
