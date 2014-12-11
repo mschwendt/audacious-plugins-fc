@@ -592,7 +592,7 @@ PACKAGE_STRING='audacious-plugin-fc 0.7.3.6'
 PACKAGE_BUGREPORT=''
 PACKAGE_URL=''
 
-ac_unique_file="src/plugin.c"
+ac_unique_file="src/audfc.h"
 # Factoring default headers for most tests.
 ac_includes_default="\
 #include <stdio.h>

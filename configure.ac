@@ -1,5 +1,5 @@
 AC_INIT([audacious-plugin-fc], [0.7.3.6])
-AC_CONFIG_SRCDIR([src/plugin.c])
+AC_CONFIG_SRCDIR([src/audfc.h])
 AM_INIT_AUTOMAKE([foreign])
 AM_DISABLE_STATIC
 AM_PROG_LIBTOOL
