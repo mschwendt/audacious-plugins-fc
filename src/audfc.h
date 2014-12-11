@@ -8,14 +8,14 @@ class AudFC : public InputPlugin {
     static const char about[];
     static const char *const exts[];
     static const char *const defaults[];
-    //static const PreferencesWidget widgets[];
-    //static const PluginPreferences prefs;
+    static const PreferencesWidget widgets[];
+    static const PluginPreferences prefs;
 
     static constexpr PluginInfo info = {
         "Future Composer Decoder " VERSION,
         PACKAGE,
         about,
-        nullptr //&prefs
+        &prefs
     };
 
     static constexpr auto iinfo = InputInfo()
