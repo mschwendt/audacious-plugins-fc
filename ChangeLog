@@ -1,3 +1,7 @@
+2016-09-22  Michael Schwendt  <mschwendt@users.sf.net>
+
+	* port to Audacious 3.8 plugin API
+
 2014-12-10  Michael Schwendt  <mschwendt@users.sf.net>
 
 	* configure.ac, src/*: start porting to Audacious 3.6-alpha1

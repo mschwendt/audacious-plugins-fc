@@ -26,6 +26,6 @@ class AudFC : public InputPlugin {
 
     bool init();
     bool is_our_file(const char *filename, VFSFile &file);
-    Tuple read_tuple(const char *filename, VFSFile &file);
+    bool read_tag(const char *filename, VFSFile &file, Tuple &tuple, Index<char> * image);
     bool play(const char *filename, VFSFile &file);
 };

@@ -21,8 +21,8 @@
 #include <fc14audiodecoder.h>
 #include <cstdlib>
 
-#if _AUD_PLUGIN_VERSION < 46
-#error "At least Audacious 3.6-alpha1 is required."
+#if _AUD_PLUGIN_VERSION < 48
+#error "At least Audacious 3.8 is required."
 #endif
 
 #include "config.h"
@@ -165,28 +165,27 @@ bool AudFC::play(const char *filename, VFSFile &fd) {
     return true;
 }
     
-Tuple AudFC::read_tuple(const char *filename, VFSFile &fd) {
+bool AudFC::read_tag(const char *filename, VFSFile &fd, Tuple &t, Index<char> *image) {
     void *decoder = nullptr;
     void *fileBuf = nullptr;
     size_t fileLen;
 
     if ( fd.fseek(0,VFS_SEEK_END)!=0 ) {
-        return Tuple();
+        return false;
     }
     fileLen = fd.ftell();
     if ( fd.fseek(0,VFS_SEEK_SET)!=0 ) {
-        return Tuple();
+        return false;
     }
     fileBuf = malloc(fileLen);
     if ( !fileBuf ) {
-        return Tuple();
+        return false;
     }
     if ( fileLen != fd.fread((char*)fileBuf,1,fileLen) ) {
         free(fileBuf);
-        return Tuple();
+        return false;
     }
     decoder = fc14dec_new();
-    Tuple t;
     if (fc14dec_init(decoder,fileBuf,fileLen)) {
         t.set_filename(filename);
         t.set_int(Tuple::Length,fc14dec_duration(decoder));
@@ -194,5 +193,5 @@ Tuple AudFC::read_tuple(const char *filename, VFSFile &fd) {
     }
     free(fileBuf);
     fc14dec_delete(decoder);
-    return t;
+    return true;
 }
