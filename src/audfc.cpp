@@ -39,9 +39,9 @@ struct audioFormat
 EXPORT AudFC aud_plugin_instance;
 
 const char AudFC::about[] =
-   "Created by Michael Schwendt.\n\n"
-   "http://xmms-fc.sourceforge.net\n"
-   "Much room for improvement.\nHave a go if you like to.\n";
+    "AMIGA Future Composer file decoder\n"
+    "File name extensions: .fc, .fc13, .fc14\n\n"
+    "Created by Michael Schwendt\n";
 
 const char *const AudFC::exts[] = {
     "fc",
