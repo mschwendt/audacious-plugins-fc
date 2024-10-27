@@ -1,8 +1,6 @@
-AC_INIT([audacious-plugin-fc], [0.8.3.8])
+AC_INIT([audacious-plugin-fc], [0.8.4])
 AC_CONFIG_SRCDIR([src/audfc.h])
 AM_INIT_AUTOMAKE([foreign])
-AM_DISABLE_STATIC
-AM_PROG_LIBTOOL
 AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -36,6 +34,8 @@ test -n "$audfc_plugin_dir" && AC_MSG_RESULT([$audfc_plugin_dir])
 test "x$audfc_plugin_dir" == "x" && AC_MSG_ERROR([check failed])
 AUDACIOUS_IPLUGIN_DIR="$audfc_plugin_dir/Input"
 AC_SUBST([AUDACIOUS_IPLUGIN_DIR])
+
+LT_INIT([disable-static])
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
