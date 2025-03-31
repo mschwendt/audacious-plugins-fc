@@ -1,4 +1,4 @@
-AC_INIT([audacious-plugin-fc], [0.8.4])
+AC_INIT([audacious-plugin-fc], [0.8.5])
 AC_CONFIG_SRCDIR([src/audfc.h])
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_HEADERS([src/config.h])
