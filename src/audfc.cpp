@@ -81,31 +81,14 @@ bool AudFC::play(const char *filename, VFSFile &fd) {
     void *decoder = nullptr;
     void *sampleBuf = nullptr;
     size_t sampleBufSize;
-    void *fileBuf = nullptr;
-    size_t fileLen;
     bool haveModule = false;
     bool audioDriverOK = false;
     bool haveSampleBuf = false;
     struct audioFormat myFormat;
 
-    if ( fd.fseek(0,VFS_SEEK_END)!=0 ) {
-        return false;
-    }
-    fileLen = fd.ftell();
-    if ( fd.fseek(0,VFS_SEEK_SET)!=0 ) {
-        return false;
-    }
-    fileBuf = malloc(fileLen);
-    if ( !fileBuf ) {
-        return false;
-    }
-    if ( fileLen != fd.fread((char*)fileBuf,1,fileLen) ) {
-        free(fileBuf);
-        return false;
-    }
+    Index<char> fileBuf = fd.read_all();
     decoder = fc14dec_new();
-    haveModule = fc14dec_init(decoder,fileBuf,fileLen);
-    free(fileBuf);
+    haveModule = fc14dec_init(decoder,fileBuf.begin(),fileBuf.len());
     if ( !haveModule ) {
         fc14dec_delete(decoder);
         return false;
@@ -167,31 +150,14 @@ bool AudFC::play(const char *filename, VFSFile &fd) {
     
 bool AudFC::read_tag(const char *filename, VFSFile &fd, Tuple &t, Index<char> *image) {
     void *decoder = nullptr;
-    void *fileBuf = nullptr;
-    size_t fileLen;
 
-    if ( fd.fseek(0,VFS_SEEK_END)!=0 ) {
-        return false;
-    }
-    fileLen = fd.ftell();
-    if ( fd.fseek(0,VFS_SEEK_SET)!=0 ) {
-        return false;
-    }
-    fileBuf = malloc(fileLen);
-    if ( !fileBuf ) {
-        return false;
-    }
-    if ( fileLen != fd.fread((char*)fileBuf,1,fileLen) ) {
-        free(fileBuf);
-        return false;
-    }
+    Index<char> fileBuf = fd.read_all();
     decoder = fc14dec_new();
-    if (fc14dec_init(decoder,fileBuf,fileLen)) {
+    if (fc14dec_init(decoder,fileBuf.begin(),fileBuf.len())) {
         t.set_filename(filename);
         t.set_int(Tuple::Length,fc14dec_duration(decoder));
         t.set_str(Tuple::Quality,"sequenced");
     }
-    free(fileBuf);
     fc14dec_delete(decoder);
     return true;
 }
