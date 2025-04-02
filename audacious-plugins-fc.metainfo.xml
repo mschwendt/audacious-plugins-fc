@@ -5,7 +5,7 @@
 <extends>audacious.desktop</extends>
 <name>Future Composer decoder</name>
 <summary>Input plugin for Future Composer files</summary>
-<url type="homepage">http://xmms-fc.sourceforge.net</url>
+<url type="homepage">https://github.com/mschwendt/audacious-plugins-fc</url>
 <metadata_license>CC0-1.0</metadata_license>
 <project_license>GPL-2.0+</project_license>
 <updatecontact>mschwendt@gmail.com</updatecontact>
