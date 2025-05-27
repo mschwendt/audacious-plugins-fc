@@ -40,13 +40,15 @@ EXPORT AudFC aud_plugin_instance;
 
 const char AudFC::about[] =
     "AMIGA Future Composer file decoder\n"
-    "File name extensions: .fc, .fc13, .fc14\n\n"
+    "File name extensions: .fc, .fc13, .fc14, .fc3, .fc4\n\n"
     "Created by Michael Schwendt\n";
 
 const char *const AudFC::exts[] = {
     "fc",
     "fc13",
     "fc14",
+    "fc3",
+    "fc4",
     nullptr
 };
 
@@ -65,14 +67,15 @@ bool AudFC::init(void) {
 
 bool AudFC::is_our_file(const char *fileName, VFSFile &fd) {
     void *dec;
-    unsigned char magicBuf[5];
+    const int minSize = 6;
+    unsigned char magicBuf[minSize];
     int ret;
 
-    if ( 5 != fd.fread(magicBuf,1,5) ) {
-        return 1;
+    if ( minSize != fd.fread(magicBuf,1,minSize) ) {
+        return false;
     }
     dec = fc14dec_new();
-    ret = fc14dec_detect(dec,magicBuf,5);
+    ret = fc14dec_detect(dec,magicBuf,minSize);
     fc14dec_delete(dec);
     return ret;
 }
