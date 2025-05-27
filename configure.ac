@@ -1,4 +1,5 @@
-AC_INIT([audacious-plugins-fc], [0.8.5])
+AC_PREREQ([2.72])
+AC_INIT([audacious-plugin-fc], [0.8.6])
 AC_CONFIG_SRCDIR([src/audfc.h])
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_HEADERS([src/config.h])
@@ -6,17 +7,29 @@ AC_CONFIG_MACRO_DIR([m4])
 
 dnl AC_CANONICAL_HOST
 
-AC_PROG_CC
 AC_PROG_CXX
+AC_PROG_AR
+AC_PROG_AWK
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
+AC_PATH_PROG(RM,rm,rm)
+
 AC_LANG([C])
 AC_C_BIGENDIAN
-AC_PATH_PROG(RM,rm,rm)
 
 CXXFLAGS="$CXXFLAGS -std=gnu++11 -fvisibility=hidden"
 EXPORT="__attribute__((visibility(\"default\")))"
 AC_DEFINE_UNQUOTED([EXPORT], [$EXPORT], [Define to compiler syntax for public symbols])
 
 dnl AC_HEADER_STDC
+AC_CHECK_HEADER_STDBOOL
+AC_TYPE_SIZE_T
+
+AC_FUNC_MALLOC
 
 AC_CHECK_HEADER(fc14audiodecoder.h,
     [],[AC_MSG_ERROR([fc14audiodecoder.h not found])])
