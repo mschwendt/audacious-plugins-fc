@@ -40,7 +40,8 @@ EXPORT AudFC aud_plugin_instance;
 
 const char AudFC::about[] =
     "AMIGA Future Composer file decoder\n"
-    "File name extensions: .fc, .fc13, .fc14, .fc3, .fc4\n\n"
+    "File name extensions:\n"
+    "  .fc, .fc13, .fc14, .fc3, .fc4, .smod\n\n"
     "Created by Michael Schwendt\n";
 
 const char *const AudFC::exts[] = {
@@ -49,6 +50,7 @@ const char *const AudFC::exts[] = {
     "fc14",
     "fc3",
     "fc4",
+    "smod",
     nullptr
 };
 
