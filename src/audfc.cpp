@@ -1,6 +1,6 @@
 //
-// AMIGA Future Composer music player plugin for Audacious
-// Copyright (C) 2000,2014 Michael Schwendt
+// AMIGA Future Composer and Hippel TFMX music plugin for Audacious
+// Copyright (C) Michael Schwendt
 //
 //  This program is free software; you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <libaudcore/plugin.h>
+#include <libaudcore/audstrings.h>
 #include <libaudcore/vfs.h>
 #include <fc14audiodecoder.h>
 #include <cstdlib>
@@ -39,9 +40,16 @@ struct audioFormat
 EXPORT AudFC aud_plugin_instance;
 
 const char AudFC::about[] =
-    "AMIGA Future Composer file decoder\n"
+    "Decoder for:\n"
+    "\n"
+    "Future Composer (AMIGA)\n"
+    "Hippel TFMX (AMIGA)\n"
+    "\n"
     "File name extensions:\n"
-    "  .fc, .fc13, .fc14, .fc3, .fc4, .smod\n\n"
+    ".fc, .fc13, .fc14, .fc3, .fc4, .smod\n"
+    ".hip, .hipc, .hip7, .mcmd\n"
+    "\n"
+    "Plugin version: " VERSION "\n"
     "Created by Michael Schwendt\n";
 
 const char *const AudFC::exts[] = {
@@ -51,6 +59,10 @@ const char *const AudFC::exts[] = {
     "fc3",
     "fc4",
     "smod",
+    "hip",
+    "hipc",
+    "hip7",
+    "mcmd",
     nullptr
 };
 
@@ -58,6 +70,7 @@ const char *const AudFC::defaults[] = {
     "frequency", "44100",
     "precision", "8",
     "channels", "1",
+    "panning", "75",
     nullptr
 };
 
@@ -69,7 +82,7 @@ bool AudFC::init(void) {
 
 bool AudFC::is_our_file(const char *fileName, VFSFile &fd) {
     void *dec;
-    const int minSize = 6;
+    const int minSize = 2560;
     unsigned char magicBuf[minSize];
     int ret;
 
@@ -90,10 +103,13 @@ bool AudFC::play(const char *filename, VFSFile &fd) {
     bool audioDriverOK = false;
     bool haveSampleBuf = false;
     struct audioFormat myFormat;
+    int songNumber = -1;
+
+    uri_parse(filename,nullptr,nullptr,nullptr,&songNumber);
 
     Index<char> fileBuf = fd.read_all();
     decoder = fc14dec_new();
-    haveModule = fc14dec_init(decoder,fileBuf.begin(),fileBuf.len());
+    haveModule = fc14dec_init(decoder,fileBuf.begin(),fileBuf.len(),songNumber-1);
     if ( !haveModule ) {
         fc14dec_delete(decoder);
         return false;
@@ -123,16 +139,18 @@ bool AudFC::play(const char *filename, VFSFile &fd) {
     sampleBufSize = 512*(myFormat.bits/8)*myFormat.channels;
     sampleBuf = malloc(sampleBufSize);
     haveSampleBuf = (sampleBuf != nullptr);
-    fc14dec_mixer_init(decoder,myFormat.freq,myFormat.bits,myFormat.channels,myFormat.zeroSample);
+    fc14dec_mixer_init(decoder,myFormat.freq,myFormat.bits,myFormat.channels,myFormat.zeroSample,fc_myConfig.panning);
 
     if ( haveSampleBuf && haveModule ) {
-        int msecSongLen = fc14dec_duration(decoder);
-
         Tuple t;
         t.set_filename(filename);
         t.set_str(Tuple::Codec,fc14dec_format_name(decoder));
-        t.set_int(Tuple::Length,msecSongLen);
+        t.set_int(Tuple::Length,fc14dec_duration(decoder));
         t.set_str(Tuple::Quality,"sequenced");
+        if (songNumber > 0) {
+            //t.set_int(Tuple::Subtune,songNumber);
+            t.set_int(Tuple::Track,songNumber);
+        }
         set_playback_tuple( std::move(t) );
 
         while ( !check_stop() ) {
@@ -157,13 +175,28 @@ bool AudFC::play(const char *filename, VFSFile &fd) {
 bool AudFC::read_tag(const char *filename, VFSFile &fd, Tuple &t, Index<char> *image) {
     void *decoder = nullptr;
 
+    int songNumber = t.get_int(Tuple::Subtune);
+
     Index<char> fileBuf = fd.read_all();
     decoder = fc14dec_new();
-    if (fc14dec_init(decoder,fileBuf.begin(),fileBuf.len())) {
+    if (fc14dec_init(decoder,fileBuf.begin(),fileBuf.len(),songNumber-1)) {
         t.set_filename(filename);
         t.set_str(Tuple::Codec,fc14dec_format_name(decoder));
         t.set_int(Tuple::Length,fc14dec_duration(decoder));
         t.set_str(Tuple::Quality,"sequenced");
+
+        int songs = fc14dec_songs(decoder);
+        if (songs > 1) {
+            t.set_int(Tuple::NumSubtunes,songs);
+            if (songNumber > 0) {
+                t.set_int(Tuple::Subtune,songNumber);
+                t.set_int(Tuple::Track,songNumber);
+            }
+            Index<short> subtunes;
+            for (int s=0; s<songs; s++)
+                subtunes.append(s+1);
+            t.set_subtunes(subtunes.len(),subtunes.begin());
+        }
     }
     fc14dec_delete(decoder);
     return true;

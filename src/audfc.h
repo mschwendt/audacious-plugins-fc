@@ -12,17 +12,14 @@ class AudFC : public InputPlugin {
     static const PluginPreferences prefs;
 
     static constexpr PluginInfo info = {
-        "Future Composer Decoder " VERSION,
+        "FC and Hippel Decoder",
         PACKAGE,
         about,
         &prefs
     };
 
-    static constexpr auto iinfo = InputInfo()
-        .with_exts (exts);
-
-    constexpr AudFC() : InputPlugin(info,iinfo) {
-    }
+    constexpr AudFC() : InputPlugin(info, InputInfo(FlagSubtunes)
+        .with_exts (exts)) {}
 
     bool init();
     bool is_our_file(const char *filename, VFSFile &file);

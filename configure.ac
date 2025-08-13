@@ -1,5 +1,5 @@
 AC_PREREQ([2.72])
-AC_INIT([audacious-plugin-fc], [0.8.6])
+AC_INIT([audacious-plugin-fc], [0.9])
 AC_CONFIG_SRCDIR([src/audfc.h])
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_HEADERS([src/config.h])
@@ -30,12 +30,8 @@ AC_TYPE_SIZE_T
 
 AC_FUNC_MALLOC
 
-AC_CHECK_HEADER(fc14audiodecoder.h,
-    [],[AC_MSG_ERROR([fc14audiodecoder.h not found])])
-AC_CHECK_LIB(fc14audiodecoder,fc14dec_new)
-if ! test "$ac_cv_lib_fc14audiodecoder_fc14dec_new" = yes; then
-    AC_MSG_ERROR([libfc14audiodecoder not found])
-fi
+PKG_CHECK_MODULES([LIBFC14AUDIODECODER], [libfc14audiodecoder >= 2.0.0], [],
+    AC_MSG_ERROR([Could not find libfc14audiodecoder >= 2.0.0 API pkgconfig file.]))
 
 PKG_CHECK_MODULES([AUDACIOUS], [audacious >= 3.8], [],
     AC_MSG_ERROR([Could not find Audacious >= 3.8 API pkgconfig file.]))
