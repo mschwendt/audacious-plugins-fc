@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2014 Michael Schwendt <mschwendt@gmail.com> -->
+<!-- Copyright 2014-2025 Michael Schwendt <mschwendt@gmail.com> -->
 <component type="addon">
 <id>audacious-plugins-fc</id>
 <extends>audacious.desktop</extends>
 <name>Future Composer decoder</name>
-<summary>Input plugin for Future Composer files</summary>
+<summary>Input plugin for Future Composer and Hippel music files</summary>
 <url type="homepage">https://github.com/mschwendt/audacious-plugins-fc</url>
 <metadata_license>CC0-1.0</metadata_license>
 <project_license>GPL-2.0+</project_license>
