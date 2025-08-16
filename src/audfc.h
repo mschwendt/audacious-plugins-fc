@@ -12,7 +12,7 @@ class AudFC : public InputPlugin {
     static const PluginPreferences prefs;
 
     static constexpr PluginInfo info = {
-        "FC and Hippel Decoder",
+        "FC & Hippel Decoder",
         PACKAGE,
         about,
         &prefs

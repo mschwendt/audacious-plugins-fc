@@ -68,9 +68,11 @@ const char *const AudFC::exts[] = {
 
 const char *const AudFC::defaults[] = {
     "frequency", "44100",
-    "precision", "8",
-    "channels", "1",
+    "precision", "16",
+    "channels", "2",
     "panning", "75",
+    "endshorts", "TRUE",
+    "maxsecs", "10",
     nullptr
 };
 
@@ -109,6 +111,7 @@ bool AudFC::play(const char *filename, VFSFile &fd) {
 
     Index<char> fileBuf = fd.read_all();
     decoder = fc14dec_new();
+    fc14dec_end_shorts(decoder,fc_myConfig.endshorts,fc_myConfig.maxsecs);
     haveModule = fc14dec_init(decoder,fileBuf.begin(),fileBuf.len(),songNumber-1);
     if ( !haveModule ) {
         fc14dec_delete(decoder);
