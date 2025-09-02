@@ -20,11 +20,10 @@ AC_PATH_PROG(RM,rm,rm)
 AC_LANG([C])
 AC_C_BIGENDIAN
 
-CXXFLAGS="$CXXFLAGS -std=gnu++11 -fvisibility=hidden"
+CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
 EXPORT="__attribute__((visibility(\"default\")))"
 AC_DEFINE_UNQUOTED([EXPORT], [$EXPORT], [Define to compiler syntax for public symbols])
 
-dnl AC_HEADER_STDC
 AC_CHECK_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 
