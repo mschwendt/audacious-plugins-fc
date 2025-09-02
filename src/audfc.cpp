@@ -84,15 +84,16 @@ bool AudFC::init(void) {
 
 bool AudFC::is_our_file(const char *fileName, VFSFile &fd) {
     void *dec;
-    const int minSize = 2560;
-    unsigned char magicBuf[minSize];
+    const int minSize = 0xb80;  // preferred minimal probe buffer size
+    unsigned char probeBuf[minSize];
     int ret;
 
-    if ( minSize != fd.fread(magicBuf,1,minSize) ) {
+    int64_t readSize = fd.fread(probeBuf,1,minSize);
+    if (readSize<minSize && !fd.feof()) {
         return false;
     }
     dec = fc14dec_new();
-    ret = fc14dec_detect(dec,magicBuf,minSize);
+    ret = fc14dec_detect(dec,probeBuf,readSize);
     fc14dec_delete(dec);
     return ret;
 }
