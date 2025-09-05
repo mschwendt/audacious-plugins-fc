@@ -71,7 +71,8 @@ const char *const AudFC::defaults[] = {
     "precision", "16",
     "channels", "2",
     "panning", "75",
-    "endshorts", "TRUE",
+    "ignoreshorts", "TRUE",
+    "endshorts", "FALSE",
     "maxsecs", "10",
     nullptr
 };
@@ -184,22 +185,33 @@ bool AudFC::read_tag(const char *filename, VFSFile &fd, Tuple &t, Index<char> *i
     Index<char> fileBuf = fd.read_all();
     decoder = fc14dec_new();
     if (fc14dec_init(decoder,fileBuf.begin(),fileBuf.len(),songNumber-1)) {
-        t.set_filename(filename);
-        t.set_str(Tuple::Codec,fc14dec_format_name(decoder));
-        t.set_int(Tuple::Length,fc14dec_duration(decoder));
-        t.set_str(Tuple::Quality,"sequenced");
-
         int songs = fc14dec_songs(decoder);
-        if (songs > 1) {
-            t.set_int(Tuple::NumSubtunes,songs);
-            if (songNumber > 0) {
+        // Populate individual track/song tuples.
+        if ( songNumber>0 || songs==1 ) {
+            t.set_filename(filename);
+            t.set_str(Tuple::Codec,fc14dec_format_name(decoder));
+            t.set_int(Tuple::Length,fc14dec_duration(decoder));
+            t.set_str(Tuple::Quality,"sequenced");
+            if (songs > 1) {
                 t.set_int(Tuple::Subtune,songNumber);
                 t.set_int(Tuple::Track,songNumber);
             }
+        }
+        // Populate index of sub-tracks/sub-songs.
+        else {
             Index<short> subtunes;
-            for (int s=0; s<songs; s++)
-                subtunes.append(s+1);
+            int songsAccepted = 0;
+            for (int s=0; s<songs; s++) {
+                if (fc14dec_reinit(decoder,s) ) {
+                    int dur = fc14dec_duration(decoder);
+                    if (!fc_myConfig.ignoreshorts || (dur/1000) >= fc_myConfig.maxsecs) {
+                        subtunes.append(s+1);
+                        songsAccepted++;
+                    }
+                }
+            }
             t.set_subtunes(subtunes.len(),subtunes.begin());
+            t.set_int(Tuple::NumSubtunes,songsAccepted);
         }
     }
     fc14dec_delete(decoder);

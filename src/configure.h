@@ -7,6 +7,7 @@ typedef struct
     int precision;
     int channels;
     int panning;
+    bool ignoreshorts;
     bool endshorts;
     int maxsecs;
 } FCpluginConfig;

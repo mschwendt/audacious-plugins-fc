@@ -20,6 +20,7 @@ void fc_ip_eval_config() {
     fc_myConfig.precision = aud_get_int(configSection, "precision");
     fc_myConfig.channels = aud_get_int(configSection, "channels");
     fc_myConfig.panning = aud_get_int(configSection, "panning");
+    fc_myConfig.ignoreshorts = aud_get_bool(configSection, "ignoreshorts");
     fc_myConfig.endshorts = aud_get_bool(configSection, "endshorts");
     fc_myConfig.maxsecs = aud_get_int(configSection, "maxsecs");
 }
@@ -66,9 +67,10 @@ const PreferencesWidget AudFC::widgets[] = {
     WidgetLabel("<b>Stereo Panning</b>:"),
     WidgetSpin("",WidgetInt(configSection,"panning",&configure_apply), {0, 100, 5, "100=stereo, 50=middle, 0=mirrored stereo"}),
 
-    WidgetLabel("<b>Short tracks</b>:"),
-    WidgetCheck("End immediately if shorter than",WidgetBool(configSection,"endshorts",&configure_apply)),
-    WidgetSpin("",WidgetInt(configSection,"maxsecs",&configure_apply), {5, 30, 1, "seconds"}),
+    WidgetLabel("<b>Sub-tracks</b>:"),
+    WidgetSpin("If shorter than",WidgetInt(configSection,"maxsecs",&configure_apply), {5, 30, 1, "seconds"}),
+    WidgetCheck("Don't add them to playlist",WidgetBool(configSection,"ignoreshorts",&configure_apply)),
+    WidgetCheck("End them immediately",WidgetBool(configSection,"endshorts",&configure_apply)),
 
     WidgetLabel ("<b>Note</b>: These settings will take effect when restarting playback.")};
 
