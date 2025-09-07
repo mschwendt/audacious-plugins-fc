@@ -9,4 +9,4 @@ file name extensions:
      .hip, .hipc, .hip7
      .mcmd
 
-This release is built upon ``libfc14audiodecoder``.
+This release is built upon ``libfc14audiodecoder`` and strictly requires version 2, at least.
