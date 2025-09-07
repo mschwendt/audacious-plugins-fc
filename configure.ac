@@ -1,5 +1,5 @@
 AC_PREREQ([2.72])
-AC_INIT([audacious-plugin-fc], [0.9])
+AC_INIT([audacious-plugins-fc], [0.9])
 AC_CONFIG_SRCDIR([src/audfc.h])
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_HEADERS([src/config.h])
@@ -42,7 +42,7 @@ test "x$audfc_plugin_dir" == "x" && AC_MSG_ERROR([check failed])
 AUDACIOUS_IPLUGIN_DIR="$audfc_plugin_dir/Input"
 AC_SUBST([AUDACIOUS_IPLUGIN_DIR])
 
-LT_INIT([disable-static])
+LT_INIT()
 
 AC_CONFIG_FILES([Makefile src/Makefile])
 AC_OUTPUT
