@@ -17,14 +17,12 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PATH_PROG(RM,rm,rm)
 
-AC_LANG([C])
-AC_C_BIGENDIAN
+AC_LANG([C++])
 
 CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
 EXPORT="__attribute__((visibility(\"default\")))"
 AC_DEFINE_UNQUOTED([EXPORT], [$EXPORT], [Define to compiler syntax for public symbols])
 
-AC_CHECK_HEADER_STDBOOL
 AC_TYPE_SIZE_T
 
 AC_FUNC_MALLOC
