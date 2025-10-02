@@ -185,13 +185,13 @@ bool AudFC::read_tag(const char *filename, VFSFile &fd, Tuple &t, Index<char> *i
     Index<char> fileBuf = fd.read_all();
     decoder = fc14dec_new();
     if (fc14dec_init(decoder,fileBuf.begin(),fileBuf.len(),songNumber-1)) {
+        t.set_str(Tuple::Codec,fc14dec_format_name(decoder));
+        t.set_str(Tuple::Quality,"sequenced");
+        t.set_filename(filename);
+        t.set_int(Tuple::Length,fc14dec_duration(decoder));
         int songs = fc14dec_songs(decoder);
         // Populate individual track/song tuples.
         if ( songNumber>0 || songs==1 ) {
-            t.set_filename(filename);
-            t.set_str(Tuple::Codec,fc14dec_format_name(decoder));
-            t.set_int(Tuple::Length,fc14dec_duration(decoder));
-            t.set_str(Tuple::Quality,"sequenced");
             if (songs > 1) {
                 t.set_int(Tuple::Subtune,songNumber);
                 t.set_int(Tuple::Track,songNumber);
