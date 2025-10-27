@@ -1,5 +1,6 @@
 #include <libaudcore/plugin.h>
 #include <libaudcore/preferences.h>
+#include <string>
 
 #include "config.h"
 
@@ -12,7 +13,7 @@ class AudFC : public InputPlugin {
     static const PluginPreferences prefs;
 
     static constexpr PluginInfo info = {
-        "FC & Hippel Decoder",
+        "FC & TFMX Decoder",
         PACKAGE,
         about,
         &prefs
@@ -25,4 +26,8 @@ class AudFC : public InputPlugin {
     bool is_our_file(const char *filename, VFSFile &file);
     bool read_tag(const char *filename, VFSFile &file, Tuple &tuple, Index<char> * image);
     bool play(const char *filename, VFSFile &file);
+
+private:
+    int parse_uri(const char *uri, std::string &path, std::string &ext);
+    void fill_tuple(void*, Tuple &tuple);
 };

@@ -1,5 +1,5 @@
 AC_PREREQ([2.72])
-AC_INIT([audacious-plugins-fc], [0.9.1])
+AC_INIT([audacious-plugins-fc],[0.9.2])
 AC_CONFIG_SRCDIR([src/audfc.h])
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_HEADERS([src/config.h])
@@ -27,8 +27,7 @@ AC_TYPE_SIZE_T
 
 AC_FUNC_MALLOC
 
-PKG_CHECK_MODULES([LIBFC14AUDIODECODER], [libfc14audiodecoder >= 2.0.0], [],
-    AC_MSG_ERROR([Could not find libfc14audiodecoder >= 2.0.0 API pkgconfig file.]))
+PKG_CHECK_MODULES([DECODER], [libtfmxaudiodecoder >= 1.0.0], [], [])
 
 PKG_CHECK_MODULES([AUDACIOUS], [audacious >= 3.8], [],
     AC_MSG_ERROR([Could not find Audacious >= 3.8 API pkgconfig file.]))
@@ -39,6 +38,9 @@ test -n "$audfc_plugin_dir" && AC_MSG_RESULT([$audfc_plugin_dir])
 test "x$audfc_plugin_dir" == "x" && AC_MSG_ERROR([check failed])
 AUDACIOUS_IPLUGIN_DIR="$audfc_plugin_dir/Input"
 AC_SUBST([AUDACIOUS_IPLUGIN_DIR])
+
+PLUGINNAME=fcdecoder
+AC_SUBST(PLUGINNAME)
 
 LT_INIT()
 

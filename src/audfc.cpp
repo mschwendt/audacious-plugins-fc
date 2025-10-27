@@ -19,8 +19,10 @@
 #include <libaudcore/plugin.h>
 #include <libaudcore/audstrings.h>
 #include <libaudcore/vfs.h>
-#include <fc14audiodecoder.h>
+#include <tfmxaudiodecoder.h>
 #include <cstdlib>
+#include <string>
+#include <cstring>
 
 #if _AUD_PLUGIN_VERSION < 48
 #error "At least Audacious 3.8 is required."
@@ -42,10 +44,12 @@ EXPORT AudFC aud_plugin_instance;
 const char AudFC::about[] =
     "Decoder for:\n"
     "\n"
+    "TFMX (AMIGA)\n"
     "Future Composer (AMIGA)\n"
     "Hippel TFMX (AMIGA)\n"
     "\n"
     "File name extensions:\n"
+    ".tfmx, .tfx, .tfm, .mdat\n"
     ".fc, .fc13, .fc14, .fc3, .fc4, .smod\n"
     ".hip, .hipc, .hip7, .mcmd\n"
     "\n"
@@ -53,16 +57,9 @@ const char AudFC::about[] =
     "Created by Michael Schwendt\n";
 
 const char *const AudFC::exts[] = {
-    "fc",
-    "fc13",
-    "fc14",
-    "fc3",
-    "fc4",
-    "smod",
-    "hip",
-    "hipc",
-    "hip7",
-    "mcmd",
+    "tfmx", "tfx", "tfm", "mdat",
+    "fc", "fc13", "fc14", "fc3", "fc4", "smod",
+    "hip", "hipc", "hip7", "mcmd",
     nullptr
 };
 
@@ -88,35 +85,40 @@ bool AudFC::is_our_file(const char *fileName, VFSFile &fd) {
     const int minSize = 0xb80;  // preferred minimal probe buffer size
     unsigned char probeBuf[minSize];
     int ret;
+    std::string path, ext;
+    parse_uri(fileName,path,ext);
 
     int64_t readSize = fd.fread(probeBuf,1,minSize);
     if (readSize<minSize && !fd.feof()) {
         return false;
     }
-    dec = fc14dec_new();
-    ret = fc14dec_detect(dec,probeBuf,readSize);
-    fc14dec_delete(dec);
+    dec = tfmxdec_new();
+    tfmxdec_set_path(dec,path.c_str());
+    ret = tfmxdec_detect(dec,probeBuf,readSize);
+    tfmxdec_delete(dec);
     return ret;
 }
 
-bool AudFC::play(const char *filename, VFSFile &fd) {
+bool AudFC::play(const char *uri, VFSFile &fd) {
     void *decoder = nullptr;
     void *sampleBuf = nullptr;
     size_t sampleBufSize;
     bool haveModule = false;
-    bool audioDriverOK = false;
+    //bool audioDriverOK = false;
     bool haveSampleBuf = false;
     struct audioFormat myFormat;
     int songNumber = -1;
+    std::string path, ext;
 
-    uri_parse(filename,nullptr,nullptr,nullptr,&songNumber);
+    songNumber = parse_uri(uri,path,ext);
 
     Index<char> fileBuf = fd.read_all();
-    decoder = fc14dec_new();
-    fc14dec_end_shorts(decoder,fc_myConfig.endshorts,fc_myConfig.maxsecs);
-    haveModule = fc14dec_init(decoder,fileBuf.begin(),fileBuf.len(),songNumber-1);
+    decoder = tfmxdec_new();
+    tfmxdec_set_path(decoder,path.c_str());
+    tfmxdec_end_shorts(decoder,fc_myConfig.endshorts,fc_myConfig.maxsecs);
+    haveModule = tfmxdec_init(decoder,fileBuf.begin(),fileBuf.len(),songNumber-1);
     if ( !haveModule ) {
-        fc14dec_delete(decoder);
+        tfmxdec_delete(decoder);
         return false;
     }
 
@@ -144,14 +146,12 @@ bool AudFC::play(const char *filename, VFSFile &fd) {
     sampleBufSize = 512*(myFormat.bits/8)*myFormat.channels;
     sampleBuf = malloc(sampleBufSize);
     haveSampleBuf = (sampleBuf != nullptr);
-    fc14dec_mixer_init(decoder,myFormat.freq,myFormat.bits,myFormat.channels,myFormat.zeroSample,fc_myConfig.panning);
+    tfmxdec_mixer_init(decoder,myFormat.freq,myFormat.bits,myFormat.channels,myFormat.zeroSample,fc_myConfig.panning);
 
     if ( haveSampleBuf && haveModule ) {
         Tuple t;
-        t.set_filename(filename);
-        t.set_str(Tuple::Codec,fc14dec_format_name(decoder));
-        t.set_int(Tuple::Length,fc14dec_duration(decoder));
-        t.set_str(Tuple::Quality,"sequenced");
+        t.set_filename(uri);
+        fill_tuple(decoder,t);
         if (songNumber > 0) {
             //t.set_int(Tuple::Subtune,songNumber);
             t.set_int(Tuple::Track,songNumber);
@@ -161,35 +161,36 @@ bool AudFC::play(const char *filename, VFSFile &fd) {
         while ( !check_stop() ) {
             int jumpToTime = check_seek();
             if ( jumpToTime != -1 ) {
-                fc14dec_seek(decoder,jumpToTime);
+                tfmxdec_seek(decoder,jumpToTime);
             }
 
-            fc14dec_buffer_fill(decoder,sampleBuf,sampleBufSize);
+            tfmxdec_buffer_fill(decoder,sampleBuf,sampleBufSize);
             write_audio(sampleBuf,sampleBufSize);
-            if ( fc14dec_song_end(decoder) ) {
+            if ( tfmxdec_song_end(decoder) ) {
                 break;
             }
         }
     }
 
     free(sampleBuf);
-    fc14dec_delete(decoder);
+    tfmxdec_delete(decoder);
     return true;
 }
     
-bool AudFC::read_tag(const char *filename, VFSFile &fd, Tuple &t, Index<char> *image) {
+bool AudFC::read_tag(const char *uri, VFSFile &fd, Tuple &t, Index<char> *image) {
     void *decoder = nullptr;
+    std::string path, ext;
+    int songArg = parse_uri(uri,path,ext);
 
     int songNumber = t.get_int(Tuple::Subtune);
 
     Index<char> fileBuf = fd.read_all();
-    decoder = fc14dec_new();
-    if (fc14dec_init(decoder,fileBuf.begin(),fileBuf.len(),songNumber-1)) {
-        t.set_str(Tuple::Codec,fc14dec_format_name(decoder));
-        t.set_str(Tuple::Quality,"sequenced");
-        t.set_filename(filename);
-        t.set_int(Tuple::Length,fc14dec_duration(decoder));
-        int songs = fc14dec_songs(decoder);
+    decoder = tfmxdec_new();
+    tfmxdec_set_path(decoder,path.c_str());
+    if (tfmxdec_init(decoder,fileBuf.begin(),fileBuf.len(),songNumber-1)) {
+        fill_tuple(decoder,t);
+        t.set_filename(uri);
+        int songs = tfmxdec_songs(decoder);
         // Populate individual track/song tuples.
         if ( songNumber>0 || songs==1 ) {
             if (songs > 1) {
@@ -202,8 +203,8 @@ bool AudFC::read_tag(const char *filename, VFSFile &fd, Tuple &t, Index<char> *i
             Index<short> subtunes;
             int songsAccepted = 0;
             for (int s=0; s<songs; s++) {
-                if (fc14dec_reinit(decoder,s) ) {
-                    int dur = fc14dec_duration(decoder);
+                if (tfmxdec_reinit(decoder,s) ) {
+                    int dur = tfmxdec_duration(decoder);
                     if (!fc_myConfig.ignoreshorts || (dur/1000) >= fc_myConfig.maxsecs) {
                         subtunes.append(s+1);
                         songsAccepted++;
@@ -214,6 +215,43 @@ bool AudFC::read_tag(const char *filename, VFSFile &fd, Tuple &t, Index<char> *i
             t.set_int(Tuple::NumSubtunes,songsAccepted);
         }
     }
-    fc14dec_delete(decoder);
+    tfmxdec_delete(decoder);
     return true;
+}
+
+int AudFC::parse_uri(const char *uri, std::string &path, std::string &ext) {
+    int subSong;
+    const char *sub, *tmpExt;
+
+    // Audacious doesn't strip the appended song number arg like "?1".
+    uri_parse(uri, nullptr, &tmpExt, &sub, &subSong);
+#ifdef __MINGW32__
+    string p = std::string(uri_to_filename(uri));
+    replace(p.begin(), p.end(), '\\', '/');
+    const char *tmpPath = p.c_str();
+#else
+    const char *tmpPath = uri_to_filename(uri);
+#endif
+    path = std::string(tmpPath, strlen(tmpPath) - strlen(sub));
+    ext = std::string(tmpExt, strlen(tmpExt) - strlen(sub));
+
+    return strlen(sub) > 0 ? subSong : -1;
+}
+
+void AudFC::fill_tuple(void *decoder, Tuple &t) {
+    const char *s = tfmxdec_get_artist(decoder);
+    if ( s!=0 && strlen(s)>0 ) {
+        t.set_str(Tuple::Artist,s);
+    }
+    s = tfmxdec_get_title(decoder);
+    if ( s!=0 && strlen(s)>0 ) {
+        t.set_str(Tuple::Title,s);
+    }
+    s = tfmxdec_get_game(decoder);
+    if ( s!=0 && strlen(s)>0 ) {
+        t.set_str(Tuple::Album,s);
+    }
+    t.set_str(Tuple::Codec,tfmxdec_format_name(decoder));
+    t.set_str(Tuple::Quality,"sequenced");
+    t.set_int(Tuple::Length,tfmxdec_duration(decoder));
 }

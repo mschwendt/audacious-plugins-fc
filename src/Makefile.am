@@ -2,14 +2,13 @@ EXTRA_DIST = config.h.in
 
 pkglibdir = $(AUDACIOUS_IPLUGIN_DIR)
 
-pkglib_LTLIBRARIES = fcdecoder.la
+pkglib_LTLIBRARIES = @PLUGINNAME@.la
 
-fcdecoder_la_LDFLAGS = -module -avoid-version -no-undefined
-fcdecoder_la_CXXFLAGS = $(AUDACIOUS_CFLAGS) $(LIBFC14AUDIODECODER_CFLAGS)
-fcdecoder_la_LIBADD = $(AUDACIOUS_LIBS) $(LIBFC14AUDIODECODER_LIBS)
-
-fcdecoder_la_SOURCES = \
-audfc.cpp \
-audfc.h \
-configure.cpp \
-configure.h
+@PLUGINNAME@_la_LDFLAGS = -module -avoid-version -no-undefined
+@PLUGINNAME@_la_CXXFLAGS = $(AUDACIOUS_CFLAGS) $(DECODER_CFLAGS)
+@PLUGINNAME@_la_LIBADD = $(AUDACIOUS_LIBS) $(DECODER_LIBS)
+@PLUGINNAME@_la_SOURCES = \
+	audfc.cpp \
+	audfc.h \
+	configure.cpp \
+	configure.h
