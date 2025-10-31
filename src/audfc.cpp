@@ -21,6 +21,7 @@
 #include <libaudcore/vfs.h>
 #include <tfmxaudiodecoder.h>
 #include <cstdlib>
+#include <algorithm>
 #include <string>
 #include <cstring>
 
@@ -226,8 +227,8 @@ int AudFC::parse_uri(const char *uri, std::string &path, std::string &ext) {
     // Audacious doesn't strip the appended song number arg like "?1".
     uri_parse(uri, nullptr, &tmpExt, &sub, &subSong);
 #ifdef __MINGW32__
-    string p = std::string(uri_to_filename(uri));
-    replace(p.begin(), p.end(), '\\', '/');
+    std::string p = std::string(uri_to_filename(uri));
+    std::replace(p.begin(), p.end(), '\\', '/');
     const char *tmpPath = p.c_str();
 #else
     const char *tmpPath = uri_to_filename(uri);
