@@ -1,4 +1,5 @@
-Audacious input plugin to handle TFMX and Hippel TFMX related music
+[Audacious](https://github.com/audacious-media-player) input plugin
+to handle TFMX and Hippel TFMX related music
 file formats like Future Composer from the Commodore Amiga era of
 computing: https://github.com/mschwendt/audacious-plugins-fc
 
