@@ -3,8 +3,8 @@
 <component type="addon">
 <id>audacious-plugins-fc</id>
 <extends>audacious.desktop</extends>
-<name>FC & TFMX decoder</name>
-<summary>Input plugin for TFMX & Future Composer music files</summary>
+<name>FC &amp; TFMX decoder</name>
+<summary>Input plugin for TFMX &amp; Future Composer music files</summary>
 <url type="homepage">https://github.com/mschwendt/audacious-plugins-fc</url>
 <metadata_license>CC0-1.0</metadata_license>
 <project_license>GPL-2.0+</project_license>
