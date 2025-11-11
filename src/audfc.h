@@ -29,5 +29,5 @@ class AudFC : public InputPlugin {
 
 private:
     int parse_uri(const char *uri, std::string &path, std::string &ext);
-    void fill_tuple(void*, Tuple &tuple);
+    void fill_tuple(Tuple &tuple, void *decoder, std::string path);
 };
