@@ -152,7 +152,7 @@ bool AudFC::play(const char *uri, VFSFile &fd) {
     if ( haveSampleBuf && haveModule ) {
         Tuple t;
         t.set_filename(uri);
-        fill_tuple(t,decoder,path);
+        fill_tuple(t,decoder);
         if (songNumber > 0) {
             //t.set_int(Tuple::Subtune,songNumber);
             t.set_int(Tuple::Track,songNumber);
@@ -189,7 +189,7 @@ bool AudFC::read_tag(const char *uri, VFSFile &fd, Tuple &t, Index<char> *image)
     decoder = tfmxdec_new();
     tfmxdec_set_path(decoder,path.c_str());
     if (tfmxdec_init(decoder,fileBuf.begin(),fileBuf.len(),songNumber-1)) {
-        fill_tuple(t,decoder,path);
+        fill_tuple(t,decoder);
         t.set_filename(uri);
         int songs = tfmxdec_songs(decoder);
         // Populate individual track/song tuples.
@@ -239,7 +239,7 @@ int AudFC::parse_uri(const char *uri, std::string &path, std::string &ext) {
     return strlen(sub) > 0 ? subSong : -1;
 }
 
-void AudFC::fill_tuple(Tuple &t, void *decoder, std::string path) {
+void AudFC::fill_tuple(Tuple &t, void *decoder) {
     const char *s = tfmxdec_get_artist(decoder);
     if ( s!=0 && strlen(s)>0 ) {
         t.set_str(Tuple::Artist,s);
@@ -248,17 +248,11 @@ void AudFC::fill_tuple(Tuple &t, void *decoder, std::string path) {
     if ( s!=0 && strlen(s)>0 ) {
         t.set_str(Tuple::Title,s);
     }
-    else {  // the corner-case of filenames with no extension but a prefix
-            std::size_t found = path.find_last_of("/\\");
-            if (found != std::string::npos) {
-                std::string fname = path.substr(found+1);
-                std::string mdatLC = "mdat.";
-                std::string mdatUC = "MDAT.";
-                if (fname.compare(0,mdatLC.length(),mdatLC) == 0 ||
-                    fname.compare(0,mdatUC.length(),mdatUC) == 0) {
-                    t.set_str( Tuple::Title, fname.substr(mdatLC.length()).c_str() );
-                }
-            }
+    else {
+        s = tfmxdec_get_name(decoder);
+        if ( s!=0 && strlen(s)>0 ) {
+            t.set_str(Tuple::Title,s);
+        }
     }
     s = tfmxdec_get_game(decoder);
     if ( s!=0 && strlen(s)>0 ) {
