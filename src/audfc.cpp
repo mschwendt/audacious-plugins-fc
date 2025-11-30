@@ -131,11 +131,7 @@ bool AudFC::play(const char *uri, VFSFile &fd) {
         myFormat.zeroSample = 0x80;
     }
     else {
-#ifdef WORDS_BIGENDIAN
-        myFormat.xmmsAFormat = FMT_S16_BE;
-#else
-        myFormat.xmmsAFormat = FMT_S16_LE;
-#endif
+        myFormat.xmmsAFormat = FMT_S16_NE;
         myFormat.bits = 16;
         myFormat.zeroSample = 0x0000;
     }
