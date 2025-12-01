@@ -10,6 +10,7 @@ typedef struct
     bool ignoreshorts;
     bool endshorts;
     int maxsecs;
+    bool filtering;
 } FCpluginConfig;
 
 extern void fc_ip_load_config(void);

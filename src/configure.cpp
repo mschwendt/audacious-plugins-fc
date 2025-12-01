@@ -23,6 +23,7 @@ void fc_ip_eval_config() {
     fc_myConfig.ignoreshorts = aud_get_bool(configSection, "ignoreshorts");
     fc_myConfig.endshorts = aud_get_bool(configSection, "endshorts");
     fc_myConfig.maxsecs = aud_get_int(configSection, "maxsecs");
+    fc_myConfig.filtering = aud_get_bool(configSection, "filtering");
 }
 
 void fc_ip_load_config() {
@@ -71,6 +72,9 @@ const PreferencesWidget AudFC::widgets[] = {
     WidgetSpin("If shorter than",WidgetInt(configSection,"maxsecs",&configure_apply), {5, 30, 1, "seconds"}),
     WidgetCheck("Don't add them to playlist",WidgetBool(configSection,"ignoreshorts",&configure_apply)),
     WidgetCheck("End them immediately",WidgetBool(configSection,"endshorts",&configure_apply)),
+
+    WidgetLabel("<b>Post Processing</b>:"),
+    WidgetCheck("Amiga 500 low-pass filter",WidgetBool(configSection,"filtering",&configure_apply)),
 
     WidgetLabel ("<b>Note</b>: These settings will take effect when restarting playback.")};
 

@@ -117,6 +117,7 @@ bool AudFC::play(const char *uri, VFSFile &fd) {
     decoder = tfmxdec_new();
     tfmxdec_set_path(decoder,path.c_str());
     tfmxdec_end_shorts(decoder,fc_myConfig.endshorts,fc_myConfig.maxsecs);
+    tfmxdec_set_filtering(decoder,fc_myConfig.filtering);
     haveModule = tfmxdec_init(decoder,fileBuf.begin(),fileBuf.len(),songNumber-1);
     if ( !haveModule ) {
         tfmxdec_delete(decoder);
