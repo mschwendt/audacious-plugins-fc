@@ -230,6 +230,11 @@ int AudFC::parse_uri(const char *uri, std::string &path, std::string &ext) {
 #else
     const char *tmpPath = uri_to_filename(uri);
 #endif
+    if (!tmpPath) {
+        path.clear();
+        ext.clear();
+        return -1;
+    }
     path = std::string(tmpPath, strlen(tmpPath) - strlen(sub));
     ext = std::string(tmpExt, strlen(tmpExt) - strlen(sub));
 
