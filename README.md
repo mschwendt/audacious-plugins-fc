@@ -8,8 +8,7 @@ file name extensions:
 
      .tfmx, .tfx, .tfm, .mdat
      .fc, .fc13, .fc14, .fc3, .fc4, .smod
-     .hip, .hipc, .hip7
-     .mcmd
+     .hip, .hipc, .hip7, .sog, .soc, .mcmd
 
 If you run this plugin in Audacious with files using their original names
 from Amiga, such as a pair "mdat.theme" and "smpl.theme", consider renaming

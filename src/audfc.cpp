@@ -46,13 +46,17 @@ const char AudFC::about[] =
     "Decoder for:\n"
     "\n"
     "TFMX (AMIGA)\n"
+    "TFMX/Hippel (AMIGA)\n"
     "Future Composer (AMIGA)\n"
-    "Hippel TFMX (AMIGA)\n"
+#if TFMXAUDIODECODER_VERSION > 10009
+    "Dynamic Synthesizer (AMIGA)\n"
+#endif
     "\n"
     "File name extensions:\n"
     ".tfmx, .tfx, .tfm, .mdat\n"
     ".fc, .fc13, .fc14, .fc3, .fc4, .smod\n"
     ".hip, .hipc, .hip7, .mcmd\n"
+    ".sog, .soc\n"
     "\n"
     "Plugin version: " VERSION "\n"
     "Created by Michael Schwendt\n";
@@ -61,6 +65,7 @@ const char *const AudFC::exts[] = {
     "tfmx", "tfx", "tfm", "mdat",
     "fc", "fc13", "fc14", "fc3", "fc4", "smod",
     "hip", "hipc", "hip7", "mcmd",
+    "sog", "soc",
     nullptr
 };
 
